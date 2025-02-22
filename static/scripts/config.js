@@ -1,0 +1,7 @@
+export default {
+  items: [
+    "meme/3186E928EB878C8F09FEF54B672E2037.png",
+    "meme/523E2C8EB85A2890579225718726BD53.png",
+    "meme/C87AAECB0D0FC7ACD2B4435E39372C4E.png",
+  ]
+}
