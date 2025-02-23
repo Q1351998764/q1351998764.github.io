@@ -43,7 +43,7 @@ EOF
         </article>
 
         <footer id="footer">
-            <p>** 零下的meme图 **</p>
+            <p>零下的meme图</p>
         </footer>
     </main>
 </body>
