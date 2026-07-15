@@ -12,7 +12,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>@TITLE@ | 内容管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/manage.css?v=3">
+    <link rel="stylesheet" href="/static/manage.css?v=4">
 </head>
 
 <body data-owner="@GITHUB_OWNER@" data-repo="@GITHUB_REPO@" data-branch="@GITHUB_BRANCH@">
@@ -42,7 +42,12 @@
             </form>
         </section>
 
-        <section id="upload-panel" class="manage-section" hidden>
+        <nav id="content-tabs" class="content-tabs" aria-label="内容类型" hidden>
+            <button type="button" data-content-kind="image" aria-pressed="true">图片</button>
+            <button type="button" data-content-kind="text" aria-pressed="false">文字</button>
+        </nav>
+
+        <section id="upload-panel" class="manage-section" data-content-panel="image" hidden>
             <h2>上传图片</h2>
             <form id="upload-form">
                 <div class="form-grid">
@@ -104,7 +109,7 @@
             </form>
         </section>
 
-        <section id="library-panel" class="manage-section" hidden>
+        <section id="library-panel" class="manage-section" data-content-panel="image" hidden>
             <header class="section-heading">
                 <div>
                     <h2>已有图片</h2>
@@ -164,9 +169,138 @@
 
             <div id="library-list" class="library-list" aria-live="polite"></div>
         </section>
+
+        <section id="text-upload-panel" class="manage-section" data-content-panel="text" hidden>
+            <h2>上传文字</h2>
+            <form id="text-upload-form">
+                <div class="form-grid">
+                    <label for="text-category-select">
+                        分类
+                        <select id="text-category-select"></select>
+                    </label>
+                    <label class="check-control">
+                        <input id="text-new-category-toggle" type="checkbox">
+                        新建分类
+                    </label>
+                </div>
+
+                <fieldset id="text-new-category-fields" hidden>
+                    <div class="form-grid category-grid">
+                        <label for="text-category-id">
+                            目录 ID
+                            <input id="text-category-id" type="text" maxlength="40" placeholder="dialogue">
+                        </label>
+                        <label for="text-category-label">
+                            显示名称
+                            <input id="text-category-label" type="text" maxlength="40" placeholder="对话">
+                        </label>
+                        <label for="text-category-order">
+                            排序
+                            <input id="text-category-order" type="number" min="0" max="9999" step="10" value="100">
+                        </label>
+                        <label class="check-control">
+                            <input id="text-category-sensitive" type="checkbox">
+                            敏感分类
+                        </label>
+                    </div>
+                </fieldset>
+
+                <label for="text-file-input">
+                    导入 Markdown 文件
+                    <input id="text-file-input" type="file" accept=".md,text/markdown,text/plain">
+                </label>
+
+                <div class="library-target-grid">
+                    <label for="text-group-name">
+                        多篇组名称
+                        <input id="text-group-name" type="text" maxlength="80" placeholder="留空则作为单篇">
+                    </label>
+                    <label for="text-title">
+                        标题
+                        <input id="text-title" type="text" maxlength="120" required>
+                    </label>
+                </div>
+
+                <label for="text-markdown">
+                    Markdown 正文
+                    <textarea id="text-markdown" rows="12" required></textarea>
+                </label>
+
+                <label for="text-commit-message">
+                    提交说明
+                    <input id="text-commit-message" type="text" maxlength="120" value="feat: upload text meme from web">
+                </label>
+
+                <div class="upload-actions">
+                    <button id="text-upload-btn" type="submit">上传到 GitHub</button>
+                </div>
+                <p id="text-upload-status" role="status"></p>
+            </form>
+        </section>
+
+        <section id="text-library-panel" class="manage-section" data-content-panel="text" hidden>
+            <header class="section-heading">
+                <div>
+                    <h2>已有文字</h2>
+                    <span id="text-library-summary"></span>
+                </div>
+                <button id="text-library-refresh-btn" class="secondary outline" type="button">刷新</button>
+            </header>
+
+            <div class="library-toolbar">
+                <label for="text-library-category-filter">
+                    分类筛选
+                    <select id="text-library-category-filter"></select>
+                </label>
+                <label for="text-library-search">
+                    搜索
+                    <input id="text-library-search" type="search" placeholder="标题、正文或组名">
+                </label>
+                <label for="text-library-sort-order">
+                    排序
+                    <select id="text-library-sort-order">
+                        <option value="directory">目录顺序</option>
+                        <option value="newest">最新上传</option>
+                        <option value="oldest">最早上传</option>
+                    </select>
+                </label>
+                <label class="check-control">
+                    <input id="text-library-select-visible" type="checkbox">
+                    选择当前结果
+                </label>
+            </div>
+
+            <div class="library-batch-actions">
+                <div class="selection-heading">
+                    <strong id="text-library-selected-count">已选择 0 篇</strong>
+                    <button id="text-library-clear-btn" class="secondary outline compact-button" type="button">清除选择</button>
+                </div>
+                <div class="library-target-grid">
+                    <label for="text-library-target-category">
+                        目标分类
+                        <select id="text-library-target-category"></select>
+                    </label>
+                    <label for="text-library-group-name">
+                        目标多篇组
+                        <input id="text-library-group-name" type="text" maxlength="80" placeholder="留空则作为单篇">
+                    </label>
+                </div>
+                <label for="text-library-commit-message">
+                    提交说明
+                    <input id="text-library-commit-message" type="text" maxlength="120" value="chore: manage existing text memes">
+                </label>
+                <div class="library-command-row">
+                    <button id="text-library-move-btn" type="button" disabled>移动 / 成组</button>
+                    <button id="text-library-delete-btn" class="secondary" type="button" disabled>删除所选</button>
+                </div>
+                <p id="text-library-status" role="status"></p>
+            </div>
+
+            <div id="text-library-list" class="library-list text-library-list" aria-live="polite"></div>
+        </section>
     </main>
 
-    <script src="/static/scripts/manage.js?v=3" type="module"></script>
+    <script src="/static/scripts/manage.js?v=4" type="module"></script>
 </body>
 
 </html>

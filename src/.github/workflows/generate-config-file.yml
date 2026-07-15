@@ -8,6 +8,7 @@ on:
       - 'meme/**'
       - 'shell/computed.sh'
       - 'shell/generate_config.py'
+      - 'shell/catalog_git.py'
       - '.github/workflows/generate-config-file.yml'
 
 jobs:
@@ -20,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

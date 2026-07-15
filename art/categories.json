@@ -1,0 +1,10 @@
+{
+  "categories": [
+    {
+      "id": "default",
+      "label": "未分类",
+      "order": 0,
+      "sensitive": false
+    }
+  ]
+}

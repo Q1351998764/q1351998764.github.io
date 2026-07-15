@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from catalog_git import load_upload_times, parse_blob_upload_history, parse_current_blobs
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -24,97 +25,6 @@ def natural_key(value: str) -> list[Any]:
         int(part) if part.isdigit() else part.casefold()
         for part in re.split(r"(\d+)", value)
     ]
-
-
-def parse_blob_upload_history(output: str) -> dict[str, str]:
-    upload_times_by_blob: dict[str, str] = {}
-    current_time = ""
-
-    for raw_line in output.splitlines():
-        line = raw_line.strip("\r")
-        if line.startswith("@@COMMIT@@"):
-            current_time = line.removeprefix("@@COMMIT@@").strip()
-            continue
-        if not line or not current_time:
-            continue
-
-        if not line.startswith(":"):
-            continue
-        metadata = line.split("\t", 1)[0].split()
-        if len(metadata) < 5:
-            continue
-        new_blob = metadata[3]
-        status = metadata[4]
-        if status != "D" and set(new_blob) != {"0"}:
-            upload_times_by_blob.setdefault(new_blob, current_time)
-
-    return upload_times_by_blob
-
-
-def parse_current_blobs(output: str) -> dict[str, str]:
-    blobs: dict[str, str] = {}
-    for line in output.splitlines():
-        metadata, separator, path = line.partition("\t")
-        fields = metadata.split()
-        if not separator or len(fields) < 3 or fields[1] != "blob":
-            continue
-        blobs[path] = fields[2]
-    return blobs
-
-
-def load_upload_times(repo_root: Path = REPO_ROOT) -> dict[str, str]:
-    try:
-        history = subprocess.run(
-            [
-                "git",
-                "-c",
-                "core.quotepath=false",
-                "log",
-                "--reverse",
-                "--date=iso-strict",
-                "--format=@@COMMIT@@%cI",
-                "--raw",
-                "--no-abbrev",
-                "--full-index",
-                "--find-renames=90%",
-                "--diff-filter=ACDMR",
-                "--",
-                "meme",
-            ],
-            cwd=repo_root,
-            capture_output=True,
-            check=False,
-            encoding="utf-8",
-            errors="replace",
-        )
-        current_tree = subprocess.run(
-            [
-                "git",
-                "-c",
-                "core.quotepath=false",
-                "ls-tree",
-                "-r",
-                "--full-tree",
-                "HEAD",
-                "meme",
-            ],
-            cwd=repo_root,
-            capture_output=True,
-            check=False,
-            encoding="utf-8",
-            errors="replace",
-        )
-    except OSError:
-        return {}
-    if history.returncode != 0 or current_tree.returncode != 0:
-        return {}
-    upload_times_by_blob = parse_blob_upload_history(history.stdout)
-    current_blobs = parse_current_blobs(current_tree.stdout)
-    return {
-        path: upload_times_by_blob[blob]
-        for path, blob in current_blobs.items()
-        if blob in upload_times_by_blob
-    }
 
 
 def latest_upload_time(paths: list[str], upload_times: dict[str, str]) -> str | None:
@@ -288,7 +198,7 @@ def build_catalog(
 
 
 def main() -> None:
-    catalog = build_catalog(upload_times=load_upload_times())
+    catalog = build_catalog(upload_times=load_upload_times(REPO_ROOT, "meme"))
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(catalog, ensure_ascii=False, indent=2)
     OUTPUT_FILE.write_text(

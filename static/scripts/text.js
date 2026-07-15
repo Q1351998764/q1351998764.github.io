@@ -1,0 +1,310 @@
+const config = (await import(`./text-config.js?v=${Date.now()}`)).default
+
+const categoryTabs = document.getElementById('text-category-tabs')
+const sortSelect = document.getElementById('text-sort-order')
+const sensitiveControl = document.getElementById('text-sensitive-control')
+const sensitiveToggle = document.getElementById('text-show-sensitive')
+const galleryShell = document.getElementById('text-gallery-shell')
+const gallery = document.getElementById('text-gallery')
+const emptyState = document.getElementById('text-empty-state')
+const view = document.getElementById('text-view')
+const viewDocuments = document.getElementById('text-documents')
+const sensitiveGate = document.getElementById('text-sensitive-gate')
+
+let categories = []
+let entries = []
+let documentCount = 0
+let activeCategory = 'all'
+let showSensitive = readPreference('memebox.showSensitive', 'false') === 'true'
+let sortOrder = readPreference('memebox.textSortOrder', 'random')
+
+function readPreference(key, fallback) {
+    try {
+        return localStorage.getItem(key) || fallback
+    } catch (_) {
+        return fallback
+    }
+}
+
+function savePreference(key, value) {
+    try {
+        localStorage.setItem(key, value)
+    } catch (_) {
+        // Preferences are optional when storage is unavailable.
+    }
+}
+
+function naturalCompare(left, right) {
+    return left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' })
+}
+
+function validUploadTime(value) {
+    return typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : ''
+}
+
+function formatUploadTime(value) {
+    if (!validUploadTime(value)) return ''
+    return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(value))
+}
+
+function shuffled(items) {
+    const result = [...items]
+    for (let index = result.length - 1; index > 0; index -= 1) {
+        const target = Math.floor(Math.random() * (index + 1))
+        ;[result[index], result[target]] = [result[target], result[index]]
+    }
+    return result
+}
+
+function normalizeConfig(rawConfig) {
+    const normalizedCategories = Array.isArray(rawConfig.categories)
+        ? rawConfig.categories.map((category, index) => ({
+            id: String(category.id),
+            label: String(category.label || category.id),
+            order: Number.isFinite(Number(category.order)) ? Number(category.order) : index * 10,
+            sensitive: Boolean(category.sensitive),
+        }))
+        : [{ id: 'default', label: '未分类', order: 0, sensitive: false }]
+    if (!normalizedCategories.some((category) => category.id === 'default')) {
+        normalizedCategories.unshift({ id: 'default', label: '未分类', order: 0, sensitive: false })
+    }
+
+    const categoryMap = new Map(normalizedCategories.map((category) => [category.id, category]))
+    const normalizedEntries = Array.isArray(rawConfig.entries)
+        ? rawConfig.entries.filter((entry) => entry && Array.isArray(entry.documents))
+            .map((entry) => {
+                const categoryId = String(entry.category || 'default')
+                if (!categoryMap.has(categoryId)) {
+                    const category = {
+                        id: categoryId,
+                        label: categoryId,
+                        order: normalizedCategories.length * 10,
+                        sensitive: false,
+                    }
+                    normalizedCategories.push(category)
+                    categoryMap.set(categoryId, category)
+                }
+                const documents = entry.documents.map((document) => ({
+                    path: String(document.path || ''),
+                    title: String(document.title || 'Untitled'),
+                    excerpt: String(document.excerpt || ''),
+                    markdown: String(document.markdown || ''),
+                    uploadedAt: validUploadTime(document.uploadedAt),
+                })).filter((document) => document.path && document.markdown)
+                return {
+                    id: String(entry.id),
+                    title: String(entry.title || entry.id),
+                    category: categoryId,
+                    sensitive: Boolean(entry.sensitive || categoryMap.get(categoryId).sensitive),
+                    uploadedAt: validUploadTime(entry.uploadedAt),
+                    documents,
+                }
+            }).filter((entry) => entry.documents.length > 0)
+        : []
+
+    normalizedCategories.sort((left, right) =>
+        left.order - right.order || naturalCompare(left.label, right.label)
+    )
+    return { categories: normalizedCategories, entries: normalizedEntries }
+}
+
+function categoryLabel(categoryId) {
+    return categories.find((category) => category.id === categoryId)?.label || categoryId
+}
+
+function filteredEntries() {
+    return entries.filter((entry) => {
+        const categoryMatches = activeCategory === 'all' || entry.category === activeCategory
+        return categoryMatches && (showSensitive || !entry.sensitive)
+    })
+}
+
+function orderedEntries(items) {
+    if (sortOrder === 'random') return shuffled(items)
+    const direction = sortOrder === 'newest' ? -1 : 1
+    return [...items].sort((left, right) => {
+        const leftTime = Date.parse(left.uploadedAt)
+        const rightTime = Date.parse(right.uploadedAt)
+        const leftKnown = Number.isFinite(leftTime)
+        const rightKnown = Number.isFinite(rightTime)
+        if (leftKnown !== rightKnown) return leftKnown ? -1 : 1
+        if (leftKnown && leftTime !== rightTime) return (leftTime - rightTime) * direction
+        return naturalCompare(left.id, right.id)
+    })
+}
+
+function hiddenBySensitiveFilter() {
+    return entries.some((entry) => {
+        const categoryMatches = activeCategory === 'all' || entry.category === activeCategory
+        return categoryMatches && entry.sensitive
+    })
+}
+
+function createCard(entry) {
+    const node = document.getElementById('text-card-template').content.firstElementChild.cloneNode(true)
+    const link = node.querySelector('a')
+    link.href = `#${encodeURIComponent(entry.id)}`
+    node.querySelector('h2').textContent = entry.title
+    node.querySelector('.text-card-category').textContent = categoryLabel(entry.category)
+    node.querySelector('.text-card-excerpt').textContent = entry.documents[0].excerpt
+    node.querySelector('time').textContent = formatUploadTime(entry.uploadedAt)
+    if (entry.documents.length > 1) {
+        const count = node.querySelector('.text-card-count')
+        count.hidden = false
+        count.textContent = `${entry.documents.length} 篇`
+    }
+    return node
+}
+
+function renderGallery() {
+    gallery.replaceChildren()
+    const visibleEntries = orderedEntries(filteredEntries())
+    emptyState.hidden = visibleEntries.length > 0
+    emptyState.textContent = !showSensitive && hiddenBySensitiveFilter()
+        ? '敏感内容已隐藏'
+        : '暂无内容'
+    visibleEntries.forEach((entry) => gallery.append(createCard(entry)))
+}
+
+function renderCategoryTabs() {
+    categoryTabs.replaceChildren()
+    const tabs = [{ id: 'all', label: '全部' }, ...categories]
+    tabs.forEach((category) => {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'text-category-tab'
+        button.setAttribute('aria-pressed', String(activeCategory === category.id))
+        button.textContent = category.label
+        button.addEventListener('click', () => {
+            activeCategory = category.id
+            categoryTabs.querySelectorAll('button').forEach((tab) =>
+                tab.setAttribute('aria-pressed', String(tab === button))
+            )
+            if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+            showGallery()
+            renderGallery()
+        })
+        categoryTabs.append(button)
+    })
+}
+
+function currentEntry() {
+    if (!location.hash || location.hash === '#') return null
+    try {
+        const id = decodeURIComponent(location.hash.slice(1))
+        return entries.find((entry) => entry.id === id) || null
+    } catch (_) {
+        return null
+    }
+}
+
+function renderMarkdown(markdown) {
+    const rendered = window.marked.parse(markdown, { gfm: true, breaks: true })
+    return window.DOMPurify.sanitize(rendered, {
+        USE_PROFILES: { html: true },
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+        FORBID_ATTR: ['style'],
+    })
+}
+
+function createDocument(textDocument, showHeading) {
+    const node = document.getElementById('text-document-template').content.firstElementChild.cloneNode(true)
+    const header = node.querySelector('header')
+    header.hidden = !showHeading
+    node.querySelector('h3').textContent = textDocument.title
+    node.querySelector('time').textContent = formatUploadTime(textDocument.uploadedAt)
+    const body = node.querySelector('.markdown-body')
+    body.innerHTML = renderMarkdown(textDocument.markdown)
+    body.querySelectorAll('a').forEach((link) => {
+        if (link.protocol === 'http:' || link.protocol === 'https:') {
+            link.target = '_blank'
+            link.rel = 'noopener noreferrer'
+        }
+    })
+    return node
+}
+
+function showGallery() {
+    view.hidden = true
+    document.getElementById('text-controls').hidden = false
+    galleryShell.hidden = false
+}
+
+function renderView() {
+    const entry = currentEntry()
+    if (!entry) {
+        showGallery()
+        return
+    }
+
+    view.hidden = false
+    document.getElementById('text-controls').hidden = true
+    galleryShell.hidden = true
+    document.getElementById('text-view-title').textContent = entry.title
+    const uploadedAt = formatUploadTime(entry.uploadedAt)
+    document.getElementById('text-view-meta').textContent = uploadedAt
+        ? `${categoryLabel(entry.category)} · ${uploadedAt}`
+        : categoryLabel(entry.category)
+
+    const blocked = entry.sensitive && !showSensitive
+    sensitiveGate.hidden = !blocked
+    viewDocuments.hidden = blocked
+    viewDocuments.replaceChildren()
+    if (!blocked) {
+        entry.documents.forEach((document) =>
+            viewDocuments.append(createDocument(document, entry.documents.length > 1))
+        )
+    }
+    window.scrollTo({ top: view.offsetTop, behavior: 'smooth' })
+}
+
+function setSensitiveVisibility(value) {
+    showSensitive = value
+    sensitiveToggle.checked = value
+    savePreference('memebox.showSensitive', String(value))
+    renderGallery()
+    renderView()
+}
+
+function init() {
+    const normalized = normalizeConfig(config)
+    categories = normalized.categories
+    entries = normalized.entries
+    documentCount = entries.reduce((total, entry) => total + entry.documents.length, 0)
+
+    document.getElementById('text-description').textContent = `> _Text memes description._ 目前已有 ${entries.length} 组，共 ${documentCount} 篇。`
+    sensitiveControl.hidden = !entries.some((entry) => entry.sensitive)
+    sensitiveToggle.checked = showSensitive
+    sortSelect.value = ['random', 'newest', 'oldest'].includes(sortOrder) ? sortOrder : 'random'
+    sortOrder = sortSelect.value
+
+    sortSelect.addEventListener('change', () => {
+        sortOrder = sortSelect.value
+        savePreference('memebox.textSortOrder', sortOrder)
+        renderGallery()
+    })
+    sensitiveToggle.addEventListener('change', () =>
+        setSensitiveVisibility(sensitiveToggle.checked)
+    )
+    document.getElementById('text-reveal-sensitive').addEventListener('click', () =>
+        setSensitiveVisibility(true)
+    )
+    document.getElementById('text-back-btn').addEventListener('click', () => {
+        history.replaceState(null, '', location.pathname + location.search)
+        showGallery()
+        renderGallery()
+    })
+
+    renderCategoryTabs()
+    renderGallery()
+    renderView()
+    window.addEventListener('hashchange', renderView)
+}
+
+init()

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="@PAGELANG@">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Joy for Everyone">
+    <meta name="description" content="@DESC@">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' https: data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'none'">
     <link rel="icon" href="/static/favicon.ico">
-    <title>MemeBox | 文字梗</title>
+    <title>@TITLE@ | @T_MEMETXT@</title>
     <link rel="stylesheet" href="/static/pico.min.css">
     <link rel="stylesheet" href="/static/text.css?v=1">
 </head>
@@ -18,10 +18,10 @@
 <body>
     <main class="container text-shell">
         <header class="site-header">
-            <h1>MemeBox</h1>
+            <h1>@TITLE@</h1>
             <nav class="site-nav" aria-label="Site">
-                <a href="/">图片梗</a>
-                <a href="/manage/">上传管理</a>
+                <a href="/">@T_MEMEPIC@</a>
+                <a href="/manage/">@T_UPLOAD@</a>
             </nav>
         </header>
 
@@ -31,16 +31,16 @@
             <nav id="text-category-tabs" aria-label="Categories"></nav>
             <div id="text-options">
                 <label id="text-sort-control" for="text-sort-order">
-                    <span>排序</span>
+                    <span>@T_SORT@</span>
                     <select id="text-sort-order">
-                        <option value="random">随机</option>
-                        <option value="newest">最新上传</option>
-                        <option value="oldest">最早上传</option>
+                        <option value="random">@T_SORT_RANDOM@</option>
+                        <option value="newest">@T_SORT_NEWEST@</option>
+                        <option value="oldest">@T_SORT_OLDEST@</option>
                     </select>
                 </label>
                 <label id="text-sensitive-control" hidden>
                     <input type="checkbox" id="text-show-sensitive" role="switch">
-                    显示敏感内容
+                    @T_SENSITIVE@
                 </label>
             </div>
         </section>
@@ -51,21 +51,21 @@
                     <h2 id="text-view-title"></h2>
                     <span id="text-view-meta"></span>
                 </div>
-                <button id="text-back-btn" class="secondary outline" type="button" title="返回画廊" aria-label="返回画廊">←</button>
+                <button id="text-back-btn" class="secondary outline" type="button" title="@T_BACK@" aria-label="@T_BACK@">←</button>
             </header>
             <div id="text-sensitive-gate" hidden>
-                <button id="text-reveal-sensitive" type="button">敏感内容已隐藏</button>
+                <button id="text-reveal-sensitive" type="button">@T_SENSITIVE_HIDDEN@</button>
             </div>
             <div id="text-documents"></div>
         </section>
 
         <section id="text-gallery-shell">
-            <p id="text-empty-state" hidden>暂无内容</p>
+            <p id="text-empty-state" hidden>@T_EMPTY@</p>
             <div id="text-gallery"></div>
         </section>
 
         <footer id="footer">
-            <p>零下的meme图</p>
+            <p>@FOOTER@</p>
         </footer>
     </main>
 

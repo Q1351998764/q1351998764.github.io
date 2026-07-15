@@ -64,9 +64,38 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 `static/scripts/config.js`。上传时间取图片首次加入 Git 历史的提交时间；移动分类、
 修改组名和调整组内顺序不会改变原上传时间。
 
+### 文字分类与多篇组
+
+文字分类由 `art/categories.json` 定义，字段含义和图片分类相同：
+
+```json
+{
+  "categories": [
+    {
+      "id": "dialogue",
+      "label": "对话",
+      "order": 10,
+      "sensitive": false
+    }
+  ]
+}
+```
+
+- `art/example.md`：未分类的单篇文字梗，兼容旧目录结构。
+- `art/dialogue/example.md`：`dialogue` 分类中的单篇文字梗。
+- `art/dialogue/某个系列/01-first.md`：多篇组，文件名按自然顺序排列。
+- 每篇文档的第一个一级标题作为显示标题；没有一级标题时使用文件名。
+- `sensitive` 为 `true` 时，网页默认隐藏该分类的文字内容。
+- 未在配置中声明的一级目录也会自动成为分类，显示名称使用目录名。
+- 文字页可以按随机、最新上传或最早上传排序。
+
+上传文字后，GitHub Actions 会运行 `shell/generate_text_config.py`，自动更新
+`static/scripts/text-config.js`。上传时间同样取文件首次加入 Git 历史的提交时间；
+移动分类、修改组名和调整组内顺序不会改变原上传时间。
+
 ### 网页上传
 
-网站的 `/manage/` 页面可以直接向仓库批量上传图片。管理页支持：
+网站的 `/manage/` 页面可以直接管理图片梗和文字梗。图片管理支持：
 
 - 选择或新建分类。
 - 标记敏感分类。
@@ -77,7 +106,17 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 - 调整多图组的图片顺序，或删除选中的图片。
 - 一批图片只创建一个 Git commit。
 
-移动、成组和排序操作会复用仓库中原图片的 Git blob，不会重新上传或压缩图片。
+文字管理支持：
+
+- 选择或新建分类，并可标记敏感分类。
+- 在线填写标题和 Markdown 正文，或导入不超过 2 MB 的 `.md` 文件。
+- 上传单篇文字，或追加、创建多篇组。
+- 筛选、搜索并按目录顺序、最新上传或最早上传排列已有文字。
+- 将已有文字移动到其他分类，合并或追加到多篇组。
+- 调整多篇组的篇章顺序，或删除选中的文档。
+- 每次上传或管理操作只创建一个 Git commit。
+
+移动、成组和排序操作会复用仓库中原文件的 Git blob，不会重新上传或改写内容。
 提交前管理页会检查分支是否已经变化，避免覆盖其他刚完成的提交。
 
 管理页使用 GitHub 细粒度 Personal Access Token。Token 应只授权当前仓库，
@@ -124,6 +163,8 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 |T_SORT_RANDOM|随机排序选项|
 |T_SORT_NEWEST|最新上传排序选项|
 |T_SORT_OLDEST|最早上传排序选项|
+|T_NTEXTS|文字梗统计信息|
+|T_TEXTS|文字篇数单位|
 
 ### 许可证
 
@@ -135,6 +176,8 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 
 - **[picocss/pico](https://github.com/picocss/pico/tree/f9e97c0bf430df8fa3f730eb6a6e84f63d4a9b0c)**
 
-- **[MarketingPipeline/Markdown-Tag](https://github.com/MarketingPipeline/Markdown-Tag)**
+- **[markedjs/marked](https://github.com/markedjs/marked)**
+
+- **[cure53/DOMPurify](https://github.com/cure53/DOMPurify)**
 
 - **[NoneMeme/NoneMeme](https://github.com/NoneMeme/NoneMeme)**

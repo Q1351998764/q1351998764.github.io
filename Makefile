@@ -29,6 +29,8 @@ T_SORT?=排序
 T_SORT_RANDOM?=随机
 T_SORT_NEWEST?=最新上传
 T_SORT_OLDEST?=最早上传
+T_NTEXTS?=目前已有 $${entries.length} 组，共 $${documentCount} 篇。
+T_TEXTS?=篇
 endif
 
 T_MEMEPIC?=Picture memes
@@ -48,10 +50,12 @@ T_SORT?=Sort
 T_SORT_RANDOM?=Random
 T_SORT_NEWEST?=Newest uploads
 T_SORT_OLDEST?=Oldest uploads
+T_NTEXTS?=$${entries.length} entries and $${documentCount} documents.
+T_TEXTS?=documents
 
 .PHONY: clean icon copyandstub fixshperm
 
-GENERATED_TEMPLATES = index.html manage/index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js
+GENERATED_TEMPLATES = index.html text/index.html manage/index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js static/scripts/text.js
 
 all: copyandstub ${GENERATED_TEMPLATES} icon fixshperm
 
@@ -79,6 +83,8 @@ ${GENERATED_TEMPLATES}: %: src/%.in
 		| sed 's%@T_SORT_RANDOM@%${T_SORT_RANDOM}%g' \
 		| sed 's%@T_SORT_NEWEST@%${T_SORT_NEWEST}%g' \
 		| sed 's%@T_SORT_OLDEST@%${T_SORT_OLDEST}%g' \
+		| sed 's%@T_NTEXTS@%${T_NTEXTS}%g' \
+		| sed 's%@T_TEXTS@%${T_TEXTS}%g' \
 		| sed 's%@GITHUB_OWNER@%${GITHUB_OWNER}%g' \
 		| sed 's%@GITHUB_REPO@%${GITHUB_REPO}%g' \
 		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' > $@
@@ -97,9 +103,10 @@ copyandstub:
 	mkdir -pv manage shell static/data/images static/scripts
 	touch static/data/.gitkeep static/data/images/.gitkeep
 	cp -rf src/.github .
-	cp -rf src/static/pico.min.css src/static/style.css src/static/manage.css static/
+	cp -rf src/static/pico.min.css src/static/style.css src/static/text.css src/static/manage.css static/
+	cp -rf src/static/vendor static/
 	cp -rf src/static/scripts/manage.js static/scripts/
-	cp -rf src/shell/computed.sh src/shell/generate_config.py src/shell/imgcheck.py shell/
+	cp -rf src/shell/catalog_git.py src/shell/computed.sh src/shell/generate_config.py src/shell/generate_text_config.py src/shell/imgcheck.py shell/
 
 clean:
 	rm -rfv .github manage shell static index.html

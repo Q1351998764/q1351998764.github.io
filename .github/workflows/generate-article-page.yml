@@ -1,37 +1,36 @@
-name: Generate article page
+name: Generate text config
 
 on:
   push:
     branches:
-      - 'main'
+      - main
     paths:
-      - 'art/*'
-      - 'shell/art2text.sh'
-      - 'shell/genartlist.sh'
+      - 'art/**'
+      - 'shell/catalog_git.py'
+      - 'shell/generate_text_config.py'
       - '.github/workflows/generate-article-page.yml'
 
 jobs:
-  generate-article-page:
-    name: Generate article page
+  generate-text-config:
+    name: Generate text config
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      - name: remove previous build
-        run: |
-          rm -f ./text/*.html
-      - name: generate directory
-        run: |
-          ./shell/genartlist.sh
-      - name: build article
-        run: |
-          ./shell/art2text.sh
-      - uses: stefanzweifel/git-auto-commit-action@v4
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          commit_message: 'chore: update article page'
-          file_pattern: 'text/*.html'
+          python-version: '3.12'
+      - name: Build text config
+        run: |
+          python ./shell/generate_text_config.py
+          cat static/scripts/text-config.js
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: update text config'
+          file_pattern: static/scripts/text-config.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -8,6 +8,7 @@ on:
       - 'meme/**'
       - 'shell/computed.sh'
       - 'shell/generate_config.py'
+      - 'shell/catalog_git.py'
       - '.github/workflows/generate-config-file.yml'
 
 jobs:
