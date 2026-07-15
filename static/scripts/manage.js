@@ -21,12 +21,35 @@ const newCategoryFields = document.getElementById('new-category-fields')
 const fileInput = document.getElementById('file-input')
 const dropZone = document.getElementById('drop-zone')
 const previewList = document.getElementById('preview-list')
+const libraryPanel = document.getElementById('library-panel')
+const librarySummary = document.getElementById('library-summary')
+const libraryRefreshButton = document.getElementById('library-refresh-btn')
+const libraryCategoryFilter = document.getElementById('library-category-filter')
+const librarySearch = document.getElementById('library-search')
+const librarySelectVisible = document.getElementById('library-select-visible')
+const librarySelectedCount = document.getElementById('library-selected-count')
+const libraryClearButton = document.getElementById('library-clear-btn')
+const libraryTargetCategory = document.getElementById('library-target-category')
+const libraryGroupName = document.getElementById('library-group-name')
+const libraryCommitMessage = document.getElementById('library-commit-message')
+const libraryMoveButton = document.getElementById('library-move-btn')
+const libraryDeleteButton = document.getElementById('library-delete-btn')
+const libraryStatus = document.getElementById('library-status')
+const libraryList = document.getElementById('library-list')
 
 let token = ''
 let connected = false
 let categoriesDocument = defaultCategoriesDocument()
 let selectedFiles = []
 let draggedIndex = null
+let libraryHeadSha = ''
+let libraryImages = []
+let libraryEntries = []
+let selectedLibraryPaths = new Set()
+let dirtyGroupIds = new Set()
+let libraryLoading = false
+
+const naturalCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 class ApiError extends Error {
     constructor(message, status, data) {
@@ -118,6 +141,30 @@ function setStatus(message, state = '') {
     else delete statusMessage.dataset.state
 }
 
+function setLibraryStatus(message, state = '') {
+    libraryStatus.replaceChildren()
+    libraryStatus.textContent = message
+    if (state) libraryStatus.dataset.state = state
+    else delete libraryStatus.dataset.state
+}
+
+function showCommitStatus(element, commitSha, label = '提交成功，查看 commit') {
+    element.replaceChildren()
+    const link = document.createElement('a')
+    link.href = `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commit/${commitSha}`
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.textContent = label
+    element.append(link)
+    element.dataset.state = 'success'
+}
+
+function showCommitRefreshError(element, commitSha) {
+    showCommitStatus(element, commitSha, '提交成功，查看 commit')
+    element.append(document.createTextNode('；图片列表刷新失败，请点击刷新'))
+    element.dataset.state = 'error'
+}
+
 function setProgress(value, visible = true) {
     uploadProgress.hidden = !visible
     uploadProgress.value = value
@@ -125,6 +172,46 @@ function setProgress(value, visible = true) {
 
 function updateUploadButton() {
     uploadButton.disabled = !connected || selectedFiles.length === 0
+}
+
+function availableCategories() {
+    const categories = cloneDocument(categoriesDocument.categories)
+    const knownIds = new Set(categories.map((category) => category.id))
+    for (const image of libraryImages) {
+        if (knownIds.has(image.category)) continue
+        categories.push({
+            id: image.category,
+            label: image.category,
+            order: categories.length * 10,
+            sensitive: false,
+        })
+        knownIds.add(image.category)
+    }
+    return categories.sort((left, right) =>
+        Number(left.order || 0) - Number(right.order || 0)
+        || naturalCollator.compare(left.label, right.label)
+    )
+}
+
+function fillCategorySelect(select, categories, selectedId, includeAll = false) {
+    select.replaceChildren()
+    if (includeAll) {
+        const option = document.createElement('option')
+        option.value = 'all'
+        option.textContent = '全部分类'
+        select.append(option)
+    }
+    for (const category of categories) {
+        const option = document.createElement('option')
+        option.value = category.id
+        option.textContent = category.sensitive
+            ? `${category.label} · 敏感`
+            : category.label
+        select.append(option)
+    }
+    if ([...select.options].some((option) => option.value === selectedId)) {
+        select.value = selectedId
+    }
 }
 
 async function loadCategories() {
@@ -146,21 +233,19 @@ async function loadCategories() {
 }
 
 function renderCategories(selectedId = categorySelect.value || 'default') {
-    categorySelect.replaceChildren()
-    const categories = [...categoriesDocument.categories].sort(
-        (left, right) => Number(left.order || 0) - Number(right.order || 0)
+    const categories = availableCategories()
+    fillCategorySelect(categorySelect, categories, selectedId)
+    fillCategorySelect(
+        libraryTargetCategory,
+        categories,
+        libraryTargetCategory.value || selectedId
     )
-    for (const category of categories) {
-        const option = document.createElement('option')
-        option.value = category.id
-        option.textContent = category.sensitive
-            ? `${category.label} · 敏感`
-            : category.label
-        categorySelect.append(option)
-    }
-    if ([...categorySelect.options].some((option) => option.value === selectedId)) {
-        categorySelect.value = selectedId
-    }
+    fillCategorySelect(
+        libraryCategoryFilter,
+        categories,
+        libraryCategoryFilter.value || 'all',
+        true
+    )
 }
 
 async function connect(nextToken) {
@@ -172,14 +257,17 @@ async function connect(nextToken) {
         githubApi(''),
     ])
     await loadCategories()
+    await loadRepositoryImages()
     connected = true
     document.getElementById('github-user').textContent = `@${user.login}`
     authPanel.hidden = true
     sessionPanel.hidden = false
     uploadPanel.hidden = false
+    libraryPanel.hidden = false
     tokenInput.value = ''
     setAuthStatus('')
     updateUploadButton()
+    renderLibrary()
 }
 
 function disconnect() {
@@ -188,9 +276,18 @@ function disconnect() {
     authPanel.hidden = false
     sessionPanel.hidden = true
     uploadPanel.hidden = true
+    libraryPanel.hidden = true
+    libraryHeadSha = ''
+    libraryImages = []
+    libraryEntries = []
+    selectedLibraryPaths.clear()
+    dirtyGroupIds.clear()
+    libraryList.replaceChildren()
     setAuthStatus('')
     setStatus('')
+    setLibraryStatus('')
     updateUploadButton()
+    updateLibrarySelectionControls([])
 }
 
 function extensionOf(filename) {
@@ -374,6 +471,444 @@ async function pathExists(path) {
     return result !== null
 }
 
+function pathBasename(path) {
+    return path.slice(path.lastIndexOf('/') + 1)
+}
+
+function pathDirectory(path) {
+    const separator = path.lastIndexOf('/')
+    return separator === -1 ? '' : path.slice(0, separator)
+}
+
+function imageUrl(path) {
+    return `/${path.split('/').map(encodeURIComponent).join('/')}`
+}
+
+function treeImage(entry) {
+    if (entry.type !== 'blob' || !entry.path.startsWith('meme/')) return null
+    const parts = entry.path.split('/')
+    if (parts.slice(1).some((part) => part.startsWith('.'))) return null
+    if (!supportedExtensions.has(extensionOf(entry.path))) return null
+    const relativeParts = parts.slice(1)
+    return {
+        path: entry.path,
+        sha: entry.sha,
+        size: Number(entry.size || 0),
+        filename: relativeParts.at(-1),
+        category: relativeParts.length === 1 ? 'default' : relativeParts[0],
+        groupPath: relativeParts.length > 2
+            ? relativeParts.slice(1, -1).join('/')
+            : '',
+    }
+}
+
+function rebuildLibraryEntries() {
+    const entryMap = new Map()
+    for (const image of libraryImages) {
+        const grouped = Boolean(image.groupPath)
+        const id = grouped ? `${image.category}/${image.groupPath}` : image.path
+        if (!entryMap.has(id)) {
+            const title = grouped
+                ? image.groupPath.split('/').at(-1)
+                : image.filename.slice(0, -(extensionOf(image.filename).length + 1))
+            entryMap.set(id, {
+                id,
+                title,
+                category: image.category,
+                groupPath: image.groupPath,
+                images: [],
+            })
+        }
+        entryMap.get(id).images.push(image)
+    }
+
+    const categoryOrder = new Map(
+        availableCategories().map((category) => [category.id, Number(category.order || 0)])
+    )
+    libraryEntries = [...entryMap.values()]
+    for (const entry of libraryEntries) {
+        entry.images.sort((left, right) => naturalCollator.compare(left.path, right.path))
+    }
+    libraryEntries.sort((left, right) =>
+        (categoryOrder.get(left.category) ?? 10_000) - (categoryOrder.get(right.category) ?? 10_000)
+        || naturalCollator.compare(left.id, right.id)
+    )
+}
+
+async function loadRepositoryImages() {
+    libraryLoading = true
+    renderLibrary()
+    try {
+        const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
+        const commit = await githubApi(`/git/commits/${ref.object.sha}`)
+        const tree = await githubApi(`/git/trees/${commit.tree.sha}?recursive=1`)
+        if (tree.truncated) throw new Error('仓库文件过多，GitHub 未返回完整图片列表')
+
+        libraryHeadSha = ref.object.sha
+        libraryImages = tree.tree
+            .map(treeImage)
+            .filter(Boolean)
+            .sort((left, right) => naturalCollator.compare(left.path, right.path))
+        selectedLibraryPaths.clear()
+        dirtyGroupIds.clear()
+        rebuildLibraryEntries()
+        renderCategories()
+    } finally {
+        libraryLoading = false
+        renderLibrary()
+    }
+}
+
+function categoryLabel(categoryId) {
+    return availableCategories().find((category) => category.id === categoryId)?.label || categoryId
+}
+
+function filteredLibraryEntries() {
+    const categoryId = libraryCategoryFilter.value || 'all'
+    const query = librarySearch.value.trim().toLocaleLowerCase()
+    return libraryEntries.filter((entry) => {
+        if (categoryId !== 'all' && entry.category !== categoryId) return false
+        if (!query) return true
+        return entry.title.toLocaleLowerCase().includes(query)
+            || entry.groupPath.toLocaleLowerCase().includes(query)
+            || entry.images.some((image) => image.path.toLocaleLowerCase().includes(query))
+    })
+}
+
+function orderedLibraryImages() {
+    return libraryEntries.flatMap((entry) => entry.images)
+}
+
+function updateLibrarySelectionControls(visibleEntries = filteredLibraryEntries()) {
+    const visiblePaths = visibleEntries.flatMap((entry) => entry.images.map((image) => image.path))
+    const selectedVisibleCount = visiblePaths.filter((path) => selectedLibraryPaths.has(path)).length
+    librarySelectVisible.checked = visiblePaths.length > 0 && selectedVisibleCount === visiblePaths.length
+    librarySelectVisible.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visiblePaths.length
+
+    const selectedCount = selectedLibraryPaths.size
+    librarySelectedCount.textContent = `已选择 ${selectedCount} 张`
+    libraryClearButton.disabled = libraryLoading || selectedCount === 0
+    libraryMoveButton.disabled = !connected || libraryLoading || selectedCount === 0
+    libraryDeleteButton.disabled = !connected || libraryLoading || selectedCount === 0
+    libraryRefreshButton.disabled = libraryLoading
+}
+
+function libraryIconButton(label, text, handler, disabled = false) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'secondary outline library-icon-button'
+    button.title = label
+    button.setAttribute('aria-label', label)
+    button.textContent = text
+    button.disabled = disabled
+    button.addEventListener('click', handler)
+    return button
+}
+
+function selectEntry(entry, selected) {
+    for (const image of entry.images) {
+        if (selected) selectedLibraryPaths.add(image.path)
+        else selectedLibraryPaths.delete(image.path)
+    }
+    syncLibrarySelectionState()
+}
+
+function selectLibraryImage(path, selected) {
+    if (selected) selectedLibraryPaths.add(path)
+    else selectedLibraryPaths.delete(path)
+    syncLibrarySelectionState()
+}
+
+function syncLibrarySelectionState() {
+    libraryList.querySelectorAll('input[data-image-path]').forEach((checkbox) => {
+        checkbox.checked = selectedLibraryPaths.has(checkbox.dataset.imagePath)
+    })
+    libraryList.querySelectorAll('input[data-entry-id]').forEach((checkbox) => {
+        const entry = libraryEntries.find((item) => item.id === checkbox.dataset.entryId)
+        if (!entry) return
+        const selectedCount = entry.images.filter((image) =>
+            selectedLibraryPaths.has(image.path)
+        ).length
+        checkbox.checked = selectedCount === entry.images.length
+        checkbox.indeterminate = selectedCount > 0 && selectedCount < entry.images.length
+    })
+    updateLibrarySelectionControls()
+}
+
+function reorderLibraryGroup(entryId, fromIndex, toIndex) {
+    const entry = libraryEntries.find((item) => item.id === entryId)
+    if (!entry || toIndex < 0 || toIndex >= entry.images.length || fromIndex === toIndex) return
+    const [image] = entry.images.splice(fromIndex, 1)
+    entry.images.splice(toIndex, 0, image)
+    dirtyGroupIds.add(entryId)
+    renderLibrary()
+}
+
+function renderLibraryEntry(entry) {
+    const article = document.createElement('article')
+    article.className = 'library-entry'
+    let header = null
+    if (entry.groupPath) {
+        header = document.createElement('header')
+        header.className = 'library-entry-header'
+        const selectLabel = document.createElement('label')
+        selectLabel.className = 'library-entry-select'
+        const entryCheckbox = document.createElement('input')
+        entryCheckbox.type = 'checkbox'
+        entryCheckbox.dataset.entryId = entry.id
+        const selectedCount = entry.images.filter((image) =>
+            selectedLibraryPaths.has(image.path)
+        ).length
+        entryCheckbox.checked = selectedCount === entry.images.length
+        entryCheckbox.indeterminate = selectedCount > 0 && selectedCount < entry.images.length
+        entryCheckbox.addEventListener('change', () => selectEntry(entry, entryCheckbox.checked))
+
+        const heading = document.createElement('span')
+        const title = document.createElement('strong')
+        title.textContent = entry.title
+        const meta = document.createElement('small')
+        meta.textContent = `${categoryLabel(entry.category)} · ${entry.images.length} 张`
+        heading.append(title, meta)
+        selectLabel.append(entryCheckbox, heading)
+        header.append(selectLabel)
+
+        if (entry.images.length > 1) {
+            const saveButton = document.createElement('button')
+            saveButton.type = 'button'
+            saveButton.className = 'secondary outline compact-button'
+            saveButton.textContent = '保存顺序'
+            saveButton.disabled = libraryLoading || !dirtyGroupIds.has(entry.id)
+            saveButton.addEventListener('click', () => saveGroupOrder(entry.id))
+            header.append(saveButton)
+        }
+    }
+
+    const imageList = document.createElement('ol')
+    imageList.className = 'library-images'
+    entry.images.forEach((item, index) => {
+        const row = document.createElement('li')
+        row.className = 'library-image'
+        const imageSelect = document.createElement('label')
+        imageSelect.className = 'library-image-select'
+        const checkbox = document.createElement('input')
+        checkbox.type = 'checkbox'
+        checkbox.checked = selectedLibraryPaths.has(item.path)
+        checkbox.dataset.imagePath = item.path
+        checkbox.addEventListener('change', () => selectLibraryImage(item.path, checkbox.checked))
+        const image = document.createElement('img')
+        image.src = imageUrl(item.path)
+        image.alt = ''
+        image.loading = 'lazy'
+        const details = document.createElement('span')
+        const filename = document.createElement('strong')
+        filename.textContent = item.filename
+        const path = document.createElement('small')
+        path.textContent = item.path
+        details.append(filename, path)
+        imageSelect.append(checkbox, image, details)
+        row.append(imageSelect)
+
+        if (entry.groupPath && entry.images.length > 1) {
+            const actions = document.createElement('span')
+            actions.className = 'library-order-actions'
+            actions.append(
+                libraryIconButton('上移', '↑', () => reorderLibraryGroup(entry.id, index, index - 1), index === 0),
+                libraryIconButton('下移', '↓', () => reorderLibraryGroup(entry.id, index, index + 1), index === entry.images.length - 1)
+            )
+            row.append(actions)
+        }
+        imageList.append(row)
+    })
+
+    if (header) article.append(header)
+    article.append(imageList)
+    return article
+}
+
+function renderLibrary() {
+    libraryList.replaceChildren()
+    if (libraryLoading) {
+        const loading = document.createElement('p')
+        loading.setAttribute('aria-busy', 'true')
+        loading.textContent = '正在读取仓库图片'
+        libraryList.append(loading)
+        updateLibrarySelectionControls([])
+        return
+    }
+
+    const entries = filteredLibraryEntries()
+    librarySummary.textContent = `${libraryEntries.length} 组/项，共 ${libraryImages.length} 张`
+    if (entries.length === 0) {
+        const empty = document.createElement('p')
+        empty.className = 'library-empty'
+        empty.textContent = '没有符合条件的图片'
+        libraryList.append(empty)
+    } else {
+        const fragment = document.createDocumentFragment()
+        entries.forEach((entry) => fragment.append(renderLibraryEntry(entry)))
+        libraryList.append(fragment)
+    }
+    updateLibrarySelectionControls(entries)
+}
+
+function finalTreeChanges(affectedImages, assignments) {
+    const currentByPath = new Map(libraryImages.map((image) => [image.path, image.sha]))
+    const affectedPaths = new Set(affectedImages.map((image) => image.path))
+    const changes = new Map()
+
+    for (const [path, sha] of assignments) {
+        if (currentByPath.has(path) && !affectedPaths.has(path) && currentByPath.get(path) !== sha) {
+            throw new Error(`目标路径已存在：${path}`)
+        }
+    }
+    for (const path of affectedPaths) {
+        if (!assignments.has(path)) changes.set(path, null)
+    }
+    for (const [path, sha] of assignments) {
+        if (currentByPath.get(path) !== sha) changes.set(path, sha)
+    }
+
+    return [...changes.entries()]
+        .sort(([left], [right]) => naturalCollator.compare(left, right))
+        .map(([path, sha]) => ({ path, mode: '100644', type: 'blob', sha }))
+}
+
+function uniqueImagePath(candidate, occupied) {
+    if (!occupied.has(candidate)) {
+        occupied.add(candidate)
+        return candidate
+    }
+    const extension = extensionOf(candidate)
+    const suffix = extension ? `.${extension}` : ''
+    const base = suffix ? candidate.slice(0, -suffix.length) : candidate
+    let index = 2
+    while (occupied.has(`${base}-${index}${suffix}`)) index += 1
+    const path = `${base}-${index}${suffix}`
+    occupied.add(path)
+    return path
+}
+
+function buildMoveChanges(categoryId, rawGroupName) {
+    const orderedImages = orderedLibraryImages()
+    const selectedImages = orderedImages.filter((image) => selectedLibraryPaths.has(image.path))
+    if (selectedImages.length === 0) throw new Error('请先选择图片')
+
+    const sanitizedGroupName = sanitizePathSegment(rawGroupName)
+    if (rawGroupName.trim() && !sanitizedGroupName) throw new Error('请输入有效的多图组名称')
+
+    if (sanitizedGroupName) {
+        const targetDirectory = `meme/${categoryId}/${sanitizedGroupName}`
+        const targetImages = orderedImages.filter((image) =>
+            pathDirectory(image.path) === targetDirectory
+            && !selectedLibraryPaths.has(image.path)
+        )
+        const affectedImages = [...targetImages, ...selectedImages]
+        const assignments = new Map()
+        affectedImages.forEach((image, index) => {
+            const extension = extensionOf(image.path)
+            const filename = `${String(index + 1).padStart(2, '0')}.${extension}`
+            assignments.set(`${targetDirectory}/${filename}`, image.sha)
+        })
+        return finalTreeChanges(affectedImages, assignments)
+    }
+
+    const selectedPaths = new Set(selectedImages.map((image) => image.path))
+    const occupied = new Set(
+        libraryImages.filter((image) => !selectedPaths.has(image.path)).map((image) => image.path)
+    )
+    const assignments = new Map()
+    for (const image of selectedImages) {
+        const directory = categoryId === 'default' ? 'meme' : `meme/${categoryId}`
+        const destination = uniqueImagePath(`${directory}/${pathBasename(image.path)}`, occupied)
+        assignments.set(destination, image.sha)
+    }
+    return finalTreeChanges(selectedImages, assignments)
+}
+
+function buildGroupOrderChanges(entry) {
+    const targetDirectory = pathDirectory(entry.images[0].path)
+    const assignments = new Map()
+    entry.images.forEach((image, index) => {
+        const extension = extensionOf(image.path)
+        assignments.set(
+            `${targetDirectory}/${String(index + 1).padStart(2, '0')}.${extension}`,
+            image.sha
+        )
+    })
+    return finalTreeChanges(entry.images, assignments)
+}
+
+async function createImageTreeCommit(changes, commitMessage) {
+    if (changes.length === 0) throw new Error('图片已经位于目标位置')
+    const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
+    if (ref.object.sha !== libraryHeadSha) {
+        throw new ApiError('仓库已有新提交，请刷新图片列表后重试', 409)
+    }
+    const baseCommit = await githubApi(`/git/commits/${libraryHeadSha}`)
+    const tree = await githubApi('/git/trees', {
+        method: 'POST',
+        body: { base_tree: baseCommit.tree.sha, tree: changes },
+    })
+    const commit = await githubApi('/git/commits', {
+        method: 'POST',
+        body: {
+            message: commitMessage,
+            tree: tree.sha,
+            parents: [libraryHeadSha],
+        },
+    })
+    await githubApi(`/git/refs/heads/${encodeURIComponent(branch)}`, {
+        method: 'PATCH',
+        body: { sha: commit.sha, force: false },
+    })
+    return commit.sha
+}
+
+async function refreshRepositoryState() {
+    await loadCategories()
+    await loadRepositoryImages()
+}
+
+function libraryErrorMessage(error) {
+    return error.status === 409 || error.status === 422
+        ? '仓库在操作期间发生变化，请刷新后重试'
+        : error.message
+}
+
+async function commitLibraryChanges(changes, fallbackMessage, pendingMessage) {
+    libraryLoading = true
+    renderLibrary()
+    setLibraryStatus(pendingMessage)
+    try {
+        const message = libraryCommitMessage.value.trim() || fallbackMessage
+        const commitSha = await createImageTreeCommit(changes, message)
+        try {
+            await refreshRepositoryState()
+            showCommitStatus(libraryStatus, commitSha)
+        } catch {
+            showCommitRefreshError(libraryStatus, commitSha)
+        }
+        return true
+    } catch (error) {
+        setLibraryStatus(libraryErrorMessage(error), 'error')
+        return false
+    } finally {
+        libraryLoading = false
+        renderLibrary()
+    }
+}
+
+async function saveGroupOrder(entryId) {
+    const entry = libraryEntries.find((item) => item.id === entryId)
+    if (!entry) return
+    try {
+        const changes = buildGroupOrderChanges(entry)
+        await commitLibraryChanges(changes, `chore: reorder ${entry.title}`, '正在保存组内顺序...')
+    } catch (error) {
+        setLibraryStatus(error.message, 'error')
+    }
+}
+
 async function mapWithConcurrency(items, concurrency, worker) {
     const results = new Array(items.length)
     let nextIndex = 0
@@ -482,6 +1017,65 @@ newCategoryToggle.addEventListener('change', () => {
 })
 fileInput.addEventListener('change', () => addFiles(fileInput.files))
 
+libraryRefreshButton.addEventListener('click', async () => {
+    if (dirtyGroupIds.size > 0 && !window.confirm('刷新会放弃尚未保存的组内顺序，是否继续？')) return
+    setLibraryStatus('正在刷新...')
+    try {
+        await refreshRepositoryState()
+        setLibraryStatus('已刷新', 'success')
+    } catch (error) {
+        setLibraryStatus(error.message, 'error')
+    }
+})
+
+libraryCategoryFilter.addEventListener('change', renderLibrary)
+librarySearch.addEventListener('input', renderLibrary)
+librarySelectVisible.addEventListener('change', () => {
+    const paths = filteredLibraryEntries().flatMap((entry) =>
+        entry.images.map((image) => image.path)
+    )
+    for (const path of paths) {
+        if (librarySelectVisible.checked) selectedLibraryPaths.add(path)
+        else selectedLibraryPaths.delete(path)
+    }
+    syncLibrarySelectionState()
+})
+libraryClearButton.addEventListener('click', () => {
+    selectedLibraryPaths.clear()
+    syncLibrarySelectionState()
+})
+libraryMoveButton.addEventListener('click', async () => {
+    try {
+        if (dirtyGroupIds.size > 0) {
+            throw new Error('请先保存组内顺序，或刷新列表放弃调整')
+        }
+        const targetCategory = libraryTargetCategory.value
+        const changes = buildMoveChanges(targetCategory, libraryGroupName.value)
+        const grouped = Boolean(sanitizePathSegment(libraryGroupName.value))
+        const committed = await commitLibraryChanges(
+            changes,
+            grouped ? 'chore: group existing memes' : 'chore: move existing memes',
+            grouped ? '正在移动并组成多图组...' : '正在移动图片...'
+        )
+        if (committed) libraryGroupName.value = ''
+    } catch (error) {
+        setLibraryStatus(error.message, 'error')
+    }
+})
+libraryDeleteButton.addEventListener('click', async () => {
+    if (dirtyGroupIds.size > 0) {
+        setLibraryStatus('请先保存组内顺序，或刷新列表放弃调整', 'error')
+        return
+    }
+    const selectedImages = orderedLibraryImages().filter((image) =>
+        selectedLibraryPaths.has(image.path)
+    )
+    if (selectedImages.length === 0) return
+    if (!window.confirm(`确定删除选中的 ${selectedImages.length} 张图片吗？此操作会提交到 GitHub。`)) return
+    const changes = finalTreeChanges(selectedImages, new Map())
+    await commitLibraryChanges(changes, 'chore: delete existing memes', '正在删除图片...')
+})
+
 for (const eventName of ['dragenter', 'dragover']) {
     dropZone.addEventListener(eventName, (event) => {
         event.preventDefault()
@@ -498,6 +1092,7 @@ dropZone.addEventListener('drop', (event) => addFiles(event.dataTransfer.files))
 
 uploadForm.addEventListener('submit', async (event) => {
     event.preventDefault()
+    if (dirtyGroupIds.size > 0 && !window.confirm('上传后会刷新列表并放弃尚未保存的组内顺序，是否继续？')) return
     uploadButton.disabled = true
     setStatus('正在创建提交...')
     setProgress(0)
@@ -515,14 +1110,12 @@ uploadForm.addEventListener('submit', async (event) => {
             newCategoryFields.hidden = true
         }
         clearSelectedFiles()
-        statusMessage.replaceChildren()
-        const link = document.createElement('a')
-        link.href = `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commit/${commitSha}`
-        link.target = '_blank'
-        link.rel = 'noopener noreferrer'
-        link.textContent = '提交成功，查看 commit'
-        statusMessage.append(link)
-        statusMessage.dataset.state = 'success'
+        showCommitStatus(statusMessage, commitSha)
+        try {
+            await refreshRepositoryState()
+        } catch {
+            showCommitRefreshError(statusMessage, commitSha)
+        }
     } catch (error) {
         const message = error.status === 409 || error.status === 422
             ? '分支在上传期间发生变化，请重新上传'

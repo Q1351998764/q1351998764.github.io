@@ -10,9 +10,9 @@
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; connect-src https://api.github.com; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'none'">
     <link rel="icon" href="/static/favicon.ico">
-    <title>@TITLE@ | 上传管理</title>
+    <title>@TITLE@ | 内容管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/manage.css">
+    <link rel="stylesheet" href="/static/manage.css?v=2">
 </head>
 
 <body data-owner="@GITHUB_OWNER@" data-repo="@GITHUB_REPO@" data-branch="@GITHUB_BRANCH@">
@@ -20,7 +20,7 @@
         <header class="manage-header">
             <div>
                 <a href="/">@TITLE@</a>
-                <h1>上传管理</h1>
+                <h1>内容管理</h1>
             </div>
             <div id="session-panel" hidden>
                 <span id="github-user"></span>
@@ -43,6 +43,7 @@
         </section>
 
         <section id="upload-panel" class="manage-section" hidden>
+            <h2>上传图片</h2>
             <form id="upload-form">
                 <div class="form-grid">
                     <label for="category-select">
@@ -102,9 +103,62 @@
                 <p id="status-message" role="status"></p>
             </form>
         </section>
+
+        <section id="library-panel" class="manage-section" hidden>
+            <header class="section-heading">
+                <div>
+                    <h2>已有图片</h2>
+                    <span id="library-summary"></span>
+                </div>
+                <button id="library-refresh-btn" class="secondary outline" type="button">刷新</button>
+            </header>
+
+            <div class="library-toolbar">
+                <label for="library-category-filter">
+                    分类筛选
+                    <select id="library-category-filter"></select>
+                </label>
+                <label for="library-search">
+                    搜索
+                    <input id="library-search" type="search" placeholder="文件名或组名">
+                </label>
+                <label class="check-control">
+                    <input id="library-select-visible" type="checkbox">
+                    选择当前结果
+                </label>
+            </div>
+
+            <div class="library-batch-actions">
+                <div class="selection-heading">
+                    <strong id="library-selected-count">已选择 0 张</strong>
+                    <button id="library-clear-btn" class="secondary outline compact-button" type="button">清除选择</button>
+                </div>
+                <div class="library-target-grid">
+                    <label for="library-target-category">
+                        目标分类
+                        <select id="library-target-category"></select>
+                    </label>
+                    <label for="library-group-name">
+                        目标多图组
+                        <input id="library-group-name" type="text" maxlength="80" placeholder="留空则作为单图">
+                    </label>
+                </div>
+                <label for="library-commit-message">
+                    提交说明
+                    <input id="library-commit-message" type="text" maxlength="120" value="chore: manage existing memes">
+                </label>
+                <div class="library-command-row">
+                    <button id="library-move-btn" type="button" disabled>移动 / 成组</button>
+                    <button id="library-delete-btn" class="secondary" type="button" disabled>删除所选</button>
+                </div>
+                <p id="library-status" role="status"></p>
+            </div>
+
+            <div id="library-list" class="library-list" aria-live="polite"></div>
+        </section>
     </main>
 
-    <script src="/static/scripts/manage.js" type="module"></script>
+    <script src="/static/scripts/manage.js?v=2" type="module"></script>
 </body>
 
 </html>
