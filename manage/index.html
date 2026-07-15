@@ -12,7 +12,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>MemeBox | 内容管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/manage.css?v=4">
+    <link rel="stylesheet" href="/static/manage.css?v=5">
 </head>
 
 <body data-owner="Q1351998764" data-repo="q1351998764.github.io" data-branch="main">
@@ -35,6 +35,10 @@
                     <input id="token-input" type="password" autocomplete="current-password" required>
                     <button type="submit">连接 GitHub</button>
                 </div>
+                <label class="check-control auth-remember">
+                    <input id="remember-token" type="checkbox" checked>
+                    当前标签页内记住 Token
+                </label>
                 <a id="token-link"
                     href="https://github.com/settings/personal-access-tokens/new?name=MemeBox%20Uploader&amp;description=Upload%20images%20to%20MemeBox&amp;target_name=Q1351998764&amp;expires_in=90&amp;contents=write"
                     target="_blank" rel="noopener noreferrer">创建最小权限 Token</a>
@@ -300,7 +304,7 @@
         </section>
     </main>
 
-    <script src="/static/scripts/manage.js?v=4" type="module"></script>
+    <script src="/static/scripts/manage.js?v=5" type="module"></script>
 </body>
 
 </html>

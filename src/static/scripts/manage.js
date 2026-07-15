@@ -9,6 +9,7 @@ const authPanel = document.getElementById('auth-panel')
 const authForm = document.getElementById('auth-form')
 const authStatus = document.getElementById('auth-status')
 const tokenInput = document.getElementById('token-input')
+const rememberTokenToggle = document.getElementById('remember-token')
 const sessionPanel = document.getElementById('session-panel')
 const uploadPanel = document.getElementById('upload-panel')
 const uploadForm = document.getElementById('upload-form')
@@ -89,6 +90,7 @@ let selectedTextPaths = new Set()
 let dirtyTextGroupIds = new Set()
 
 const naturalCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+const tokenSessionKey = `memebox.githubToken:${owner}/${repo}`
 
 class ApiError extends Error {
     constructor(message, status, data) {
@@ -103,6 +105,34 @@ function defaultCategoriesDocument() {
         categories: [
             { id: 'default', label: '未分类', order: 0, sensitive: false },
         ],
+    }
+}
+
+function readSessionToken() {
+    try {
+        return sessionStorage.getItem(tokenSessionKey) || ''
+    } catch {
+        return ''
+    }
+}
+
+function clearSessionToken() {
+    try {
+        sessionStorage.removeItem(tokenSessionKey)
+    } catch {
+        // Session persistence is optional when storage is unavailable.
+    }
+}
+
+function persistSessionToken(value) {
+    if (!rememberTokenToggle.checked) {
+        clearSessionToken()
+        return
+    }
+    try {
+        sessionStorage.setItem(tokenSessionKey, value)
+    } catch {
+        // The management page still works when storage is unavailable.
     }
 }
 
@@ -455,6 +485,7 @@ async function connect(nextToken) {
     ])
     await refreshRepositoryState()
     connected = true
+    persistSessionToken(token)
     document.getElementById('github-user').textContent = `@${user.login}`
     authPanel.hidden = true
     sessionPanel.hidden = false
@@ -469,6 +500,7 @@ async function connect(nextToken) {
 
 function disconnect() {
     token = ''
+    clearSessionToken()
     connected = false
     authPanel.hidden = false
     sessionPanel.hidden = true
@@ -832,11 +864,17 @@ function rebuildLibraryEntries() {
     )
 }
 
-async function loadRepositoryImages() {
+async function loadRepositoryImages({ preserveSelection = false } = {}) {
     libraryLoading = true
     renderLibrary()
     renderTextLibrary()
     try {
+        const previousSelectedLibraryPaths = preserveSelection
+            ? new Set(selectedLibraryPaths)
+            : new Set()
+        const previousSelectedTextPaths = preserveSelection
+            ? new Set(selectedTextPaths)
+            : new Set()
         const previousTimesBySha = new Map(uploadTimesBySha)
         libraryImages.forEach((image) => {
             if (image.uploadedAt) previousTimesBySha.set(image.sha, image.uploadedAt)
@@ -879,9 +917,15 @@ async function loadRepositoryImages() {
                 uploadedAt: document.uploadedAt,
             }])
         )
-        selectedLibraryPaths.clear()
+        const currentImagePaths = new Set(libraryImages.map((image) => image.path))
+        selectedLibraryPaths = new Set(
+            [...previousSelectedLibraryPaths].filter((path) => currentImagePaths.has(path))
+        )
         dirtyGroupIds.clear()
-        selectedTextPaths.clear()
+        const currentTextPaths = new Set(textDocuments.map((document) => document.path))
+        selectedTextPaths = new Set(
+            [...previousSelectedTextPaths].filter((path) => currentTextPaths.has(path))
+        )
         dirtyTextGroupIds.clear()
         rebuildLibraryEntries()
         rebuildTextEntries()
@@ -1470,12 +1514,20 @@ async function createContentTreeCommit(changes, commitMessage) {
     return commit.sha
 }
 
-async function refreshRepositoryState() {
+async function refreshRepositoryState(options = {}) {
     await loadCategories()
     await loadCatalogUploadTimes()
     await loadTextCategories()
     await loadTextCatalog()
-    await loadRepositoryImages()
+    await loadRepositoryImages(options)
+}
+
+async function ensureRepositoryStateCurrent() {
+    if (!libraryHeadSha) return false
+    const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
+    if (ref.object.sha === libraryHeadSha) return false
+    await refreshRepositoryState({ preserveSelection: true })
+    return true
 }
 
 function libraryErrorMessage(error) {
@@ -1508,9 +1560,19 @@ async function commitLibraryChanges(changes, fallbackMessage, pendingMessage) {
 }
 
 async function saveGroupOrder(entryId) {
-    const entry = libraryEntries.find((item) => item.id === entryId)
+    let entry = libraryEntries.find((item) => item.id === entryId)
     if (!entry) return
     try {
+        const desiredOrder = entry.images.map((image) => image.sha)
+        if (await ensureRepositoryStateCurrent()) {
+            entry = libraryEntries.find((item) => item.id === entryId)
+            if (!entry) throw new Error('该多图组已经发生变化，请重新选择')
+            const order = new Map(desiredOrder.map((sha, index) => [sha, index]))
+            entry.images.sort((left, right) =>
+                (order.get(left.sha) ?? Number.MAX_SAFE_INTEGER)
+                - (order.get(right.sha) ?? Number.MAX_SAFE_INTEGER)
+            )
+        }
         const changes = buildGroupOrderChanges(entry)
         await commitLibraryChanges(changes, `chore: reorder ${entry.title}`, '正在保存组内顺序...')
     } catch (error) {
@@ -1542,9 +1604,19 @@ async function commitTextLibraryChanges(changes, fallbackMessage, pendingMessage
 }
 
 async function saveTextGroupOrder(entryId) {
-    const entry = textEntries.find((item) => item.id === entryId)
+    let entry = textEntries.find((item) => item.id === entryId)
     if (!entry) return
     try {
+        const desiredOrder = entry.documents.map((document) => document.sha)
+        if (await ensureRepositoryStateCurrent()) {
+            entry = textEntries.find((item) => item.id === entryId)
+            if (!entry) throw new Error('该多篇组已经发生变化，请重新选择')
+            const order = new Map(desiredOrder.map((sha, index) => [sha, index]))
+            entry.documents.sort((left, right) =>
+                (order.get(left.sha) ?? Number.MAX_SAFE_INTEGER)
+                - (order.get(right.sha) ?? Number.MAX_SAFE_INTEGER)
+            )
+        }
         const changes = buildTextGroupOrderChanges(entry)
         await commitTextLibraryChanges(
             changes,
@@ -1754,6 +1826,7 @@ authForm.addEventListener('submit', async (event) => {
         await connect(tokenInput.value)
     } catch (error) {
         token = ''
+        clearSessionToken()
         setAuthStatus(error.message, true)
     } finally {
         submitButton.disabled = false
@@ -1805,6 +1878,7 @@ libraryMoveButton.addEventListener('click', async () => {
         if (hasPendingOrderChanges()) {
             throw new Error('请先保存组内顺序，或刷新列表放弃调整')
         }
+        await ensureRepositoryStateCurrent()
         const targetCategory = libraryTargetCategory.value
         const changes = buildMoveChanges(targetCategory, libraryGroupName.value)
         const grouped = Boolean(sanitizePathSegment(libraryGroupName.value))
@@ -1823,13 +1897,18 @@ libraryDeleteButton.addEventListener('click', async () => {
         setLibraryStatus('请先保存组内顺序，或刷新列表放弃调整', 'error')
         return
     }
-    const selectedImages = orderedLibraryImages().filter((image) =>
-        selectedLibraryPaths.has(image.path)
-    )
-    if (selectedImages.length === 0) return
-    if (!window.confirm(`确定删除选中的 ${selectedImages.length} 张图片吗？此操作会提交到 GitHub。`)) return
-    const changes = finalTreeChanges(selectedImages, new Map())
-    await commitLibraryChanges(changes, 'chore: delete existing memes', '正在删除图片...')
+    try {
+        await ensureRepositoryStateCurrent()
+        const selectedImages = orderedLibraryImages().filter((image) =>
+            selectedLibraryPaths.has(image.path)
+        )
+        if (selectedImages.length === 0) return
+        if (!window.confirm(`确定删除选中的 ${selectedImages.length} 张图片吗？此操作会提交到 GitHub。`)) return
+        const changes = finalTreeChanges(selectedImages, new Map())
+        await commitLibraryChanges(changes, 'chore: delete existing memes', '正在删除图片...')
+    } catch (error) {
+        setLibraryStatus(libraryErrorMessage(error), 'error')
+    }
 })
 
 textLibraryRefreshButton.addEventListener('click', async () => {
@@ -1865,6 +1944,7 @@ textLibraryMoveButton.addEventListener('click', async () => {
         if (hasPendingOrderChanges()) {
             throw new Error('请先保存组内顺序，或刷新列表放弃调整')
         }
+        await ensureRepositoryStateCurrent()
         const changes = buildTextMoveChanges(
             textLibraryTargetCategory.value,
             textLibraryGroupName.value
@@ -1885,17 +1965,22 @@ textLibraryDeleteButton.addEventListener('click', async () => {
         setTextLibraryStatus('请先保存组内顺序，或刷新列表放弃调整', 'error')
         return
     }
-    const selectedDocuments = orderedTextDocuments().filter((document) =>
-        selectedTextPaths.has(document.path)
-    )
-    if (selectedDocuments.length === 0) return
-    if (!window.confirm(`确定删除选中的 ${selectedDocuments.length} 篇文字吗？此操作会提交到 GitHub。`)) return
-    const changes = finalTreeChanges(selectedDocuments, new Map(), textDocuments)
-    await commitTextLibraryChanges(
-        changes,
-        'chore: delete existing text memes',
-        '正在删除文字...'
-    )
+    try {
+        await ensureRepositoryStateCurrent()
+        const selectedDocuments = orderedTextDocuments().filter((document) =>
+            selectedTextPaths.has(document.path)
+        )
+        if (selectedDocuments.length === 0) return
+        if (!window.confirm(`确定删除选中的 ${selectedDocuments.length} 篇文字吗？此操作会提交到 GitHub。`)) return
+        const changes = finalTreeChanges(selectedDocuments, new Map(), textDocuments)
+        await commitTextLibraryChanges(
+            changes,
+            'chore: delete existing text memes',
+            '正在删除文字...'
+        )
+    } catch (error) {
+        setTextLibraryStatus(libraryErrorMessage(error), 'error')
+    }
 })
 
 textFileInput.addEventListener('change', async () => {
@@ -1944,6 +2029,7 @@ uploadForm.addEventListener('submit', async (event) => {
     setStatus('正在创建提交...')
     setProgress(0)
     try {
+        await ensureRepositoryStateCurrent()
         const category = nextCategory()
         const paths = buildUploadPaths(category.id)
         const commitMessage = document.getElementById('commit-message').value.trim()
@@ -1982,6 +2068,7 @@ textUploadForm.addEventListener('submit', async (event) => {
     textUploadButton.disabled = true
     setTextUploadStatus('正在创建提交...')
     try {
+        await ensureRepositoryStateCurrent()
         const title = document.getElementById('text-title').value.trim()
         const body = document.getElementById('text-markdown').value.trim()
         const rawGroupName = document.getElementById('text-group-name').value
@@ -2033,3 +2120,23 @@ textUploadForm.addEventListener('submit', async (event) => {
         textUploadButton.disabled = false
     }
 })
+
+async function restoreRememberedSession() {
+    const rememberedToken = readSessionToken()
+    if (!rememberedToken) return
+    const submitButton = authForm.querySelector('button[type="submit"]')
+    submitButton.disabled = true
+    rememberTokenToggle.checked = true
+    setAuthStatus('正在恢复会话...')
+    try {
+        await connect(rememberedToken)
+    } catch {
+        token = ''
+        clearSessionToken()
+        setAuthStatus('已缓存的 Token 无法使用，请重新输入', true)
+    } finally {
+        submitButton.disabled = false
+    }
+}
+
+restoreRememberedSession()

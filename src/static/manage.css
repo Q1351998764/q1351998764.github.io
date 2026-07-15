@@ -157,6 +157,11 @@
     margin-bottom: 0;
 }
 
+.auth-remember {
+    min-height: auto;
+    margin: 4px 0 12px;
+}
+
 fieldset {
     padding: 16px;
     margin-bottom: var(--spacing);

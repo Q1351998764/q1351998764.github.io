@@ -120,7 +120,9 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 提交前管理页会检查分支是否已经变化，避免覆盖其他刚完成的提交。
 
 管理页使用 GitHub 细粒度 Personal Access Token。Token 应只授权当前仓库，
-并仅开启 `Contents: read and write`。Token 只保存在管理页内存中，刷新或关闭后清除。
+并仅开启 `Contents: read and write`。勾选“当前标签页内记住 Token”后，Token 会保存在
+浏览器的 `sessionStorage` 中；刷新或在同一标签页重新进入管理页时可自动连接，退出管理
+或关闭该标签页后清除。取消勾选时仍只在页面内存中保存。
 
 项目将 Pico CSS 固定在 `static/pico.min.css`，页面和管理页不依赖第三方脚本或样式服务。
 
