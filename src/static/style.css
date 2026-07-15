@@ -61,6 +61,31 @@
     border-color: var(--muted-border-color);
 }
 
+#gallery-options {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 14px;
+}
+
+#sort-control {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#sort-order {
+    width: auto;
+    min-width: 112px;
+    height: 38px;
+    margin: 0;
+    padding: 5px 34px 5px 10px;
+    font-size: 14px;
+}
+
 #sensitive-control {
     display: flex;
     align-items: center;
@@ -254,6 +279,12 @@ footer {
 
     #sensitive-control {
         align-self: flex-start;
+    }
+
+    #gallery-options {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .view-actions {

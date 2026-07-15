@@ -10,7 +10,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>MemeBox | Joy for Everyone</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=2">
 </head>
 
 <body>
@@ -27,10 +27,20 @@
 
         <section id="gallery-controls" aria-label="Gallery filters">
             <nav id="category-tabs" aria-label="Categories"></nav>
-            <label id="sensitive-control" hidden>
-                <input type="checkbox" id="show-sensitive" role="switch">
-                显示敏感内容
-            </label>
+            <div id="gallery-options">
+                <label id="sort-control" for="sort-order">
+                    <span>排序</span>
+                    <select id="sort-order">
+                        <option value="random">随机</option>
+                        <option value="newest">最新上传</option>
+                        <option value="oldest">最早上传</option>
+                    </select>
+                </label>
+                <label id="sensitive-control" hidden>
+                    <input type="checkbox" id="show-sensitive" role="switch">
+                    显示敏感内容
+                </label>
+            </div>
         </section>
 
         <article id="view" hidden>
@@ -110,7 +120,7 @@
         </figure>
     </template>
 
-    <script src="./static/scripts/index.js?v=2" type="module"></script>
+    <script src="./static/scripts/index.js?v=3" type="module"></script>
 </body>
 
 </html>

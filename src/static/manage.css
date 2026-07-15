@@ -87,7 +87,7 @@
 
 .library-toolbar {
     display: grid;
-    grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.4fr) auto;
+    grid-template-columns: minmax(140px, 0.7fr) minmax(200px, 1.2fr) minmax(140px, 0.7fr) auto;
     gap: 16px;
     align-items: end;
 }

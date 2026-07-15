@@ -25,6 +25,10 @@ T_SENSITIVE_HIDDEN?=敏感内容已隐藏
 T_EMPTY?=暂无内容
 T_UPLOAD?=上传管理
 T_IMAGES?=张
+T_SORT?=排序
+T_SORT_RANDOM?=随机
+T_SORT_NEWEST?=最新上传
+T_SORT_OLDEST?=最早上传
 endif
 
 T_MEMEPIC?=Picture memes
@@ -40,6 +44,10 @@ T_SENSITIVE_HIDDEN?=Sensitive content is hidden
 T_EMPTY?=No content
 T_UPLOAD?=Upload
 T_IMAGES?=images
+T_SORT?=Sort
+T_SORT_RANDOM?=Random
+T_SORT_NEWEST?=Newest uploads
+T_SORT_OLDEST?=Oldest uploads
 
 .PHONY: clean icon copyandstub fixshperm
 
@@ -67,6 +75,10 @@ ${GENERATED_TEMPLATES}: %: src/%.in
 		| sed 's%@T_EMPTY@%${T_EMPTY}%g' \
 		| sed 's%@T_UPLOAD@%${T_UPLOAD}%g' \
 		| sed 's%@T_IMAGES@%${T_IMAGES}%g' \
+		| sed 's%@T_SORT@%${T_SORT}%g' \
+		| sed 's%@T_SORT_RANDOM@%${T_SORT_RANDOM}%g' \
+		| sed 's%@T_SORT_NEWEST@%${T_SORT_NEWEST}%g' \
+		| sed 's%@T_SORT_OLDEST@%${T_SORT_OLDEST}%g' \
 		| sed 's%@GITHUB_OWNER@%${GITHUB_OWNER}%g' \
 		| sed 's%@GITHUB_REPO@%${GITHUB_REPO}%g' \
 		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' > $@

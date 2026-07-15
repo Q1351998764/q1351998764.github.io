@@ -8,6 +8,7 @@ const galleryControls = document.getElementById('gallery-controls')
 const emptyState = document.getElementById('empty-state')
 const sensitiveControl = document.getElementById('sensitive-control')
 const sensitiveToggle = document.getElementById('show-sensitive')
+const sortSelect = document.getElementById('sort-order')
 const footer = document.getElementById('footer')
 const viewElement = document.getElementById('view')
 const viewImages = document.getElementById('view-images')
@@ -23,6 +24,7 @@ let displayedItemCount = 0
 let galleryLoading = false
 let galleryVersion = 0
 let showSensitive = readSensitivePreference()
+let sortOrder = readSortPreference()
 
 const galleryIO = new IntersectionObserver((observedEntries) => {
     if (!galleryShell.hidden && observedEntries.some((entry) => entry.isIntersecting)) {
@@ -41,6 +43,23 @@ function readSensitivePreference() {
 function saveSensitivePreference(value) {
     try {
         localStorage.setItem('memebox.showSensitive', String(value))
+    } catch (_) {
+        // The preference is optional when storage is unavailable.
+    }
+}
+
+function readSortPreference() {
+    try {
+        const value = localStorage.getItem('memebox.sortOrder')
+        return ['random', 'newest', 'oldest'].includes(value) ? value : 'random'
+    } catch (_) {
+        return 'random'
+    }
+}
+
+function saveSortPreference(value) {
+    try {
+        localStorage.setItem('memebox.sortOrder', value)
     } catch (_) {
         // The preference is optional when storage is unavailable.
     }
@@ -67,7 +86,36 @@ function shuffled(items) {
     return result
 }
 
+function normalizedUploadTime(value) {
+    if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) return ''
+    return value
+}
+
+function latestImageUpload(images, uploads) {
+    return images
+        .map((path) => normalizedUploadTime(uploads[path]))
+        .filter(Boolean)
+        .sort((left, right) => Date.parse(right) - Date.parse(left))[0] || ''
+}
+
+function orderedEntries(items) {
+    if (sortOrder === 'random') return shuffled(items)
+    const direction = sortOrder === 'newest' ? -1 : 1
+    return [...items].sort((left, right) => {
+        const leftTime = Date.parse(left.uploadedAt)
+        const rightTime = Date.parse(right.uploadedAt)
+        const leftKnown = Number.isFinite(leftTime)
+        const rightKnown = Number.isFinite(rightTime)
+        if (leftKnown !== rightKnown) return leftKnown ? -1 : 1
+        if (leftKnown && leftTime !== rightTime) return (leftTime - rightTime) * direction
+        return naturalCompare(left.id, right.id)
+    })
+}
+
 function normalizeConfig(rawConfig) {
+    const uploads = rawConfig.uploads && typeof rawConfig.uploads === 'object'
+        ? rawConfig.uploads
+        : {}
     const normalizedCategories = Array.isArray(rawConfig.categories)
         ? rawConfig.categories.map((category, index) => ({
             id: String(category.id),
@@ -104,12 +152,15 @@ function normalizeConfig(rawConfig) {
                     normalizedCategories.push(fallbackCategory)
                     categoryMap.set(categoryId, fallbackCategory)
                 }
+                const images = entry.images.map(String).filter((path) => imageRegex.test(path))
                 return {
                     id: String(entry.id),
                     title: String(entry.title || entry.id),
                     category: categoryId,
                     sensitive: Boolean(entry.sensitive || categoryMap.get(categoryId).sensitive),
-                    images: entry.images.map(String).filter((path) => imageRegex.test(path)),
+                    images,
+                    uploadedAt: normalizedUploadTime(entry.uploadedAt)
+                        || latestImageUpload(images, uploads),
                 }
             })
             .filter((entry) => entry.images.length > 0)
@@ -125,6 +176,7 @@ function normalizeConfig(rawConfig) {
                     category: 'default',
                     sensitive: false,
                     images: [path],
+                    uploadedAt: normalizedUploadTime(uploads[path]),
                 }
             })
     }
@@ -224,7 +276,7 @@ function renderGallery() {
     galleryIO.unobserve(footer)
     columns.forEach((column) => column.replaceChildren())
     displayedItemCount = 0
-    visibleEntries = shuffled(filteredEntries())
+    visibleEntries = orderedEntries(filteredEntries())
     emptyState.hidden = visibleEntries.length > 0
     emptyState.textContent =
         !showSensitive && hiddenBySensitiveFilter()
@@ -334,9 +386,15 @@ function init() {
     document.getElementById('description').textContent = `@DESC@, @T_NIMGS@`
     sensitiveControl.hidden = !entries.some((entry) => entry.sensitive)
     sensitiveToggle.checked = showSensitive
+    sortSelect.value = sortOrder
     sensitiveToggle.addEventListener('change', () =>
         setSensitiveVisibility(sensitiveToggle.checked)
     )
+    sortSelect.addEventListener('change', () => {
+        sortOrder = sortSelect.value
+        saveSortPreference(sortOrder)
+        renderGallery()
+    })
     document.getElementById('reveal-sensitive').addEventListener('click', () =>
         setSensitiveVisibility(true)
     )

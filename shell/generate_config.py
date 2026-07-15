@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +24,104 @@ def natural_key(value: str) -> list[Any]:
         int(part) if part.isdigit() else part.casefold()
         for part in re.split(r"(\d+)", value)
     ]
+
+
+def parse_blob_upload_history(output: str) -> dict[str, str]:
+    upload_times_by_blob: dict[str, str] = {}
+    current_time = ""
+
+    for raw_line in output.splitlines():
+        line = raw_line.strip("\r")
+        if line.startswith("@@COMMIT@@"):
+            current_time = line.removeprefix("@@COMMIT@@").strip()
+            continue
+        if not line or not current_time:
+            continue
+
+        if not line.startswith(":"):
+            continue
+        metadata = line.split("\t", 1)[0].split()
+        if len(metadata) < 5:
+            continue
+        new_blob = metadata[3]
+        status = metadata[4]
+        if status != "D" and set(new_blob) != {"0"}:
+            upload_times_by_blob.setdefault(new_blob, current_time)
+
+    return upload_times_by_blob
+
+
+def parse_current_blobs(output: str) -> dict[str, str]:
+    blobs: dict[str, str] = {}
+    for line in output.splitlines():
+        metadata, separator, path = line.partition("\t")
+        fields = metadata.split()
+        if not separator or len(fields) < 3 or fields[1] != "blob":
+            continue
+        blobs[path] = fields[2]
+    return blobs
+
+
+def load_upload_times(repo_root: Path = REPO_ROOT) -> dict[str, str]:
+    try:
+        history = subprocess.run(
+            [
+                "git",
+                "-c",
+                "core.quotepath=false",
+                "log",
+                "--reverse",
+                "--date=iso-strict",
+                "--format=@@COMMIT@@%cI",
+                "--raw",
+                "--no-abbrev",
+                "--full-index",
+                "--find-renames=90%",
+                "--diff-filter=ACDMR",
+                "--",
+                "meme",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            check=False,
+            encoding="utf-8",
+            errors="replace",
+        )
+        current_tree = subprocess.run(
+            [
+                "git",
+                "-c",
+                "core.quotepath=false",
+                "ls-tree",
+                "-r",
+                "--full-tree",
+                "HEAD",
+                "meme",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            check=False,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except OSError:
+        return {}
+    if history.returncode != 0 or current_tree.returncode != 0:
+        return {}
+    upload_times_by_blob = parse_blob_upload_history(history.stdout)
+    current_blobs = parse_current_blobs(current_tree.stdout)
+    return {
+        path: upload_times_by_blob[blob]
+        for path, blob in current_blobs.items()
+        if blob in upload_times_by_blob
+    }
+
+
+def latest_upload_time(paths: list[str], upload_times: dict[str, str]) -> str | None:
+    timestamps = [upload_times[path] for path in paths if path in upload_times]
+    if not timestamps:
+        return None
+    return max(timestamps, key=lambda value: datetime.fromisoformat(value.replace("Z", "+00:00")))
 
 
 def load_categories(category_file: Path = CATEGORY_FILE) -> list[dict[str, Any]]:
@@ -80,7 +180,9 @@ def image_paths(meme_root: Path = MEME_ROOT) -> list[Path]:
 def build_catalog(
     meme_root: Path = MEME_ROOT,
     category_file: Path = CATEGORY_FILE,
+    upload_times: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    upload_times = upload_times or {}
     categories = load_categories(category_file)
     category_by_id = {category["id"]: category for category in categories}
     singles: list[dict[str, Any]] = []
@@ -91,15 +193,18 @@ def build_catalog(
         parts = relative.parts
         if len(parts) == 1:
             category_id = "default"
-            singles.append(
-                {
-                    "id": path.stem,
-                    "title": path.stem,
-                    "category": category_id,
-                    "sensitive": category_by_id[category_id]["sensitive"],
-                    "images": [f"meme/{relative.as_posix()}"],
-                }
-            )
+            entry_images = [f"meme/{relative.as_posix()}"]
+            entry = {
+                "id": path.stem,
+                "title": path.stem,
+                "category": category_id,
+                "sensitive": category_by_id[category_id]["sensitive"],
+                "images": entry_images,
+            }
+            uploaded_at = latest_upload_time(entry_images, upload_times)
+            if uploaded_at:
+                entry["uploadedAt"] = uploaded_at
+            singles.append(entry)
             continue
 
         category_id = parts[0]
@@ -113,15 +218,18 @@ def build_catalog(
             categories.append(category_by_id[category_id])
 
         if len(parts) == 2:
-            singles.append(
-                {
-                    "id": f"{category_id}/{path.stem}",
-                    "title": path.stem,
-                    "category": category_id,
-                    "sensitive": category_by_id[category_id]["sensitive"],
-                    "images": [f"meme/{relative.as_posix()}"],
-                }
-            )
+            entry_images = [f"meme/{relative.as_posix()}"]
+            entry = {
+                "id": f"{category_id}/{path.stem}",
+                "title": path.stem,
+                "category": category_id,
+                "sensitive": category_by_id[category_id]["sensitive"],
+                "images": entry_images,
+            }
+            uploaded_at = latest_upload_time(entry_images, upload_times)
+            if uploaded_at:
+                entry["uploadedAt"] = uploaded_at
+            singles.append(entry)
         else:
             group_path = "/".join(parts[1:-1])
             grouped[(category_id, group_path)].append(path)
@@ -132,18 +240,21 @@ def build_catalog(
             paths,
             key=lambda path: natural_key(path.relative_to(meme_root).as_posix()),
         )
-        entries.append(
-            {
-                "id": f"{category_id}/{group_path}",
-                "title": group_path.split("/")[-1],
-                "category": category_id,
-                "sensitive": category_by_id[category_id]["sensitive"],
-                "images": [
-                    f"meme/{path.relative_to(meme_root).as_posix()}"
-                    for path in sorted_paths
-                ],
-            }
-        )
+        entry_images = [
+            f"meme/{path.relative_to(meme_root).as_posix()}"
+            for path in sorted_paths
+        ]
+        entry = {
+            "id": f"{category_id}/{group_path}",
+            "title": group_path.split("/")[-1],
+            "category": category_id,
+            "sensitive": category_by_id[category_id]["sensitive"],
+            "images": entry_images,
+        }
+        uploaded_at = latest_upload_time(entry_images, upload_times)
+        if uploaded_at:
+            entry["uploadedAt"] = uploaded_at
+        entries.append(entry)
 
     seen_ids: set[str] = set()
     for entry in entries:
@@ -162,11 +273,22 @@ def build_catalog(
         )
     )
 
-    return {"version": 2, "categories": categories, "entries": entries}
+    current_paths = [image for entry in entries for image in entry["images"]]
+    current_uploads = {
+        path: upload_times[path]
+        for path in sorted(current_paths, key=natural_key)
+        if path in upload_times
+    }
+    return {
+        "version": 3,
+        "categories": categories,
+        "entries": entries,
+        "uploads": current_uploads,
+    }
 
 
 def main() -> None:
-    catalog = build_catalog()
+    catalog = build_catalog(upload_times=load_upload_times())
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(catalog, ensure_ascii=False, indent=2)
     OUTPUT_FILE.write_text(

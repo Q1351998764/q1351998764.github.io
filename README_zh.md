@@ -58,9 +58,11 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 - `meme/reaction/某个系列/01.jpg`：多图组，文件名按自然顺序排列。
 - `sensitive` 为 `true` 时，网页默认不加载该分类的图片。
 - 未在配置中声明的一级目录也会自动成为分类，显示名称使用目录名。
+- 首页可以按随机、最新上传或最早上传排序。
 
 上传图片后，GitHub Actions 会运行 `shell/generate_config.py`，自动更新
-`static/scripts/config.js`。
+`static/scripts/config.js`。上传时间取图片首次加入 Git 历史的提交时间；移动分类、
+修改组名和调整组内顺序不会改变原上传时间。
 
 ### 网页上传
 
@@ -70,6 +72,7 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 - 标记敏感分类。
 - 上传单图或按顺序创建多图组。
 - 筛选、搜索和选择已经上传的图片。
+- 按目录顺序、最新上传或最早上传排列管理列表。
 - 将已有图片移动到其他分类，或合并、追加到多图组。
 - 调整多图组的图片顺序，或删除选中的图片。
 - 一批图片只创建一个 Git commit。
@@ -117,6 +120,10 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 |T_EMPTY|空分类提示|
 |T_UPLOAD|上传管理链接|
 |T_IMAGES|多图组数量单位|
+|T_SORT|排序控件名称|
+|T_SORT_RANDOM|随机排序选项|
+|T_SORT_NEWEST|最新上传排序选项|
+|T_SORT_OLDEST|最早上传排序选项|
 
 ### 许可证
 

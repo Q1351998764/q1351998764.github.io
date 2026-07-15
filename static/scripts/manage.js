@@ -26,6 +26,7 @@ const librarySummary = document.getElementById('library-summary')
 const libraryRefreshButton = document.getElementById('library-refresh-btn')
 const libraryCategoryFilter = document.getElementById('library-category-filter')
 const librarySearch = document.getElementById('library-search')
+const librarySortOrder = document.getElementById('library-sort-order')
 const librarySelectVisible = document.getElementById('library-select-visible')
 const librarySelectedCount = document.getElementById('library-selected-count')
 const libraryClearButton = document.getElementById('library-clear-btn')
@@ -48,6 +49,9 @@ let libraryEntries = []
 let selectedLibraryPaths = new Set()
 let dirtyGroupIds = new Set()
 let libraryLoading = false
+let catalogUploadTimes = new Map()
+let pendingUploadTimes = new Map()
+let uploadTimesBySha = new Map()
 
 const naturalCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
@@ -232,6 +236,51 @@ async function loadCategories() {
     renderCategories()
 }
 
+function validUploadTime(value) {
+    return typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : ''
+}
+
+async function loadCatalogUploadTimes() {
+    try {
+        const catalog = (await import(`/static/scripts/config.js?v=${Date.now()}`)).default
+        const uploads = catalog.uploads && typeof catalog.uploads === 'object'
+            ? catalog.uploads
+            : {}
+        catalogUploadTimes = new Map(
+            Object.entries(uploads)
+                .map(([path, value]) => [path, validUploadTime(value)])
+                .filter(([, value]) => value)
+        )
+    } catch {
+        catalogUploadTimes = new Map()
+    }
+}
+
+function inferredUploadTime(path) {
+    const match = pathBasename(path).match(/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-/)
+    if (!match) return ''
+    const [, year, month, day, hour, minute, second] = match
+    return new Date(Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second)
+    )).toISOString()
+}
+
+function formatUploadTime(value) {
+    if (!validUploadTime(value)) return ''
+    return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(value))
+}
+
 function renderCategories(selectedId = categorySelect.value || 'default') {
     const categories = availableCategories()
     fillCategorySelect(categorySelect, categories, selectedId)
@@ -256,8 +305,7 @@ async function connect(nextToken) {
         githubUser(),
         githubApi(''),
     ])
-    await loadCategories()
-    await loadRepositoryImages()
+    await refreshRepositoryState()
     connected = true
     document.getElementById('github-user').textContent = `@${user.login}`
     authPanel.hidden = true
@@ -282,6 +330,9 @@ function disconnect() {
     libraryEntries = []
     selectedLibraryPaths.clear()
     dirtyGroupIds.clear()
+    catalogUploadTimes.clear()
+    pendingUploadTimes.clear()
+    uploadTimesBySha.clear()
     libraryList.replaceChildren()
     setAuthStatus('')
     setStatus('')
@@ -499,6 +550,10 @@ function treeImage(entry) {
         groupPath: relativeParts.length > 2
             ? relativeParts.slice(1, -1).join('/')
             : '',
+        uploadedAt: pendingUploadTimes.get(entry.path)
+            || uploadTimesBySha.get(entry.sha)
+            || catalogUploadTimes.get(entry.path)
+            || inferredUploadTime(entry.path),
     }
 }
 
@@ -528,6 +583,10 @@ function rebuildLibraryEntries() {
     libraryEntries = [...entryMap.values()]
     for (const entry of libraryEntries) {
         entry.images.sort((left, right) => naturalCollator.compare(left.path, right.path))
+        entry.uploadedAt = entry.images
+            .map((image) => validUploadTime(image.uploadedAt))
+            .filter(Boolean)
+            .sort((left, right) => Date.parse(right) - Date.parse(left))[0] || ''
     }
     libraryEntries.sort((left, right) =>
         (categoryOrder.get(left.category) ?? 10_000) - (categoryOrder.get(right.category) ?? 10_000)
@@ -539,6 +598,11 @@ async function loadRepositoryImages() {
     libraryLoading = true
     renderLibrary()
     try {
+        const previousTimesBySha = new Map(uploadTimesBySha)
+        libraryImages.forEach((image) => {
+            if (image.uploadedAt) previousTimesBySha.set(image.sha, image.uploadedAt)
+        })
+        uploadTimesBySha = previousTimesBySha
         const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
         const commit = await githubApi(`/git/commits/${ref.object.sha}`)
         const tree = await githubApi(`/git/trees/${commit.tree.sha}?recursive=1`)
@@ -549,6 +613,11 @@ async function loadRepositoryImages() {
             .map(treeImage)
             .filter(Boolean)
             .sort((left, right) => naturalCollator.compare(left.path, right.path))
+        uploadTimesBySha = new Map(
+            libraryImages
+                .filter((image) => image.uploadedAt)
+                .map((image) => [image.sha, image.uploadedAt])
+        )
         selectedLibraryPaths.clear()
         dirtyGroupIds.clear()
         rebuildLibraryEntries()
@@ -566,12 +635,24 @@ function categoryLabel(categoryId) {
 function filteredLibraryEntries() {
     const categoryId = libraryCategoryFilter.value || 'all'
     const query = librarySearch.value.trim().toLocaleLowerCase()
-    return libraryEntries.filter((entry) => {
+    const filtered = libraryEntries.filter((entry) => {
         if (categoryId !== 'all' && entry.category !== categoryId) return false
         if (!query) return true
         return entry.title.toLocaleLowerCase().includes(query)
             || entry.groupPath.toLocaleLowerCase().includes(query)
             || entry.images.some((image) => image.path.toLocaleLowerCase().includes(query))
+    })
+    if (librarySortOrder.value === 'directory') return filtered
+
+    const direction = librarySortOrder.value === 'newest' ? -1 : 1
+    return filtered.sort((left, right) => {
+        const leftTime = Date.parse(left.uploadedAt)
+        const rightTime = Date.parse(right.uploadedAt)
+        const leftKnown = Number.isFinite(leftTime)
+        const rightKnown = Number.isFinite(rightTime)
+        if (leftKnown !== rightKnown) return leftKnown ? -1 : 1
+        if (leftKnown && leftTime !== rightTime) return (leftTime - rightTime) * direction
+        return naturalCollator.compare(left.id, right.id)
     })
 }
 
@@ -703,7 +784,8 @@ function renderLibraryEntry(entry) {
         const filename = document.createElement('strong')
         filename.textContent = item.filename
         const path = document.createElement('small')
-        path.textContent = item.path
+        const uploadedAt = formatUploadTime(item.uploadedAt)
+        path.textContent = uploadedAt ? `${uploadedAt} · ${item.path}` : item.path
         details.append(filename, path)
         imageSelect.append(checkbox, image, details)
         row.append(imageSelect)
@@ -866,6 +948,7 @@ async function createImageTreeCommit(changes, commitMessage) {
 
 async function refreshRepositoryState() {
     await loadCategories()
+    await loadCatalogUploadTimes()
     await loadRepositoryImages()
 }
 
@@ -1030,6 +1113,7 @@ libraryRefreshButton.addEventListener('click', async () => {
 
 libraryCategoryFilter.addEventListener('change', renderLibrary)
 librarySearch.addEventListener('input', renderLibrary)
+librarySortOrder.addEventListener('change', renderLibrary)
 librarySelectVisible.addEventListener('change', () => {
     const paths = filteredLibraryEntries().flatMap((entry) =>
         entry.images.map((image) => image.path)
@@ -1102,6 +1186,8 @@ uploadForm.addEventListener('submit', async (event) => {
         const commitMessage = document.getElementById('commit-message').value.trim()
             || 'feat: upload memes from web'
         const commitSha = await createBatchCommit(category, paths, commitMessage)
+        const uploadedAt = new Date().toISOString()
+        paths.forEach((path) => pendingUploadTimes.set(path, uploadedAt))
 
         if (category.isNew) {
             categoriesDocument = category.document
