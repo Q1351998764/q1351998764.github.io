@@ -7,30 +7,48 @@ DESC?=Joy for Everyone
 TDESC?=> _Text memes description._
 FOOTER?=零下的meme图
 
+GITHUB_OWNER?=Q1351998764
+GITHUB_REPO?=q1351998764.github.io
+GITHUB_BRANCH?=main
+
 ifeq (${PAGELANG}, zh)
 T_MEMEPIC?=图片梗
 T_MEMETXT?=文字梗
 T_DOWNLOAD?=下载图片
-T_ANOTHER?=梗图不喜欢？换一张试试看
+T_ANOTHER?=梗图不喜欢？换一组试试看
 T_BACK?=返回画廊
 T_ZOOMIN?=查看大图
-T_NIMGS?=目前已有 $${items.length} 张。
+T_NIMGS?=目前已有 $${entries.length} 组，共 $${imageCount} 张。
+T_ALL?=全部
+T_SENSITIVE?=显示敏感内容
+T_SENSITIVE_HIDDEN?=敏感内容已隐藏
+T_EMPTY?=暂无内容
+T_UPLOAD?=上传管理
+T_IMAGES?=张
 endif
 
 T_MEMEPIC?=Picture memes
 T_MEMETXT?=Text memes
-T_DOWNLOAD?=Download
-T_ANOTHER?=Not prefer to it? Try another one
+T_DOWNLOAD?=Download image
+T_ANOTHER?=Try another entry
 T_BACK?=Back to gallery
 T_ZOOMIN?=Zoom in
-T_NIMGS?=currently including $${items.length} image(s).
-
+T_NIMGS?=$${entries.length} entries and $${imageCount} images.
+T_ALL?=All
+T_SENSITIVE?=Show sensitive content
+T_SENSITIVE_HIDDEN?=Sensitive content is hidden
+T_EMPTY?=No content
+T_UPLOAD?=Upload
+T_IMAGES?=images
 
 .PHONY: clean icon copyandstub fixshperm
 
-all: copyandstub shell/genartlist.sh shell/art2text.sh static/scripts/index.js index.html icon fixshperm
+GENERATED_TEMPLATES = index.html manage/index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js
 
-index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js: %: src/%.in
+all: copyandstub ${GENERATED_TEMPLATES} icon fixshperm
+
+${GENERATED_TEMPLATES}: %: src/%.in
+	mkdir -pv $(@D)
 	sed 's%@TITLE@%${TITLE}%g' $^ \
 		| sed 's%@DESC@%${DESC}%g' \
 		| sed 's%@TDESC@%${TDESC}%g' \
@@ -42,9 +60,18 @@ index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js: %: src
 		| sed 's%@T_ANOTHER@%${T_ANOTHER}%g' \
 		| sed 's%@T_BACK@%${T_BACK}%g' \
 		| sed 's%@T_ZOOMIN@%${T_ZOOMIN}%g' \
-		| sed 's%@T_NIMGS@%${T_NIMGS}%g' > $@
+		| sed 's%@T_NIMGS@%${T_NIMGS}%g' \
+		| sed 's%@T_ALL@%${T_ALL}%g' \
+		| sed 's%@T_SENSITIVE@%${T_SENSITIVE}%g' \
+		| sed 's%@T_SENSITIVE_HIDDEN@%${T_SENSITIVE_HIDDEN}%g' \
+		| sed 's%@T_EMPTY@%${T_EMPTY}%g' \
+		| sed 's%@T_UPLOAD@%${T_UPLOAD}%g' \
+		| sed 's%@T_IMAGES@%${T_IMAGES}%g' \
+		| sed 's%@GITHUB_OWNER@%${GITHUB_OWNER}%g' \
+		| sed 's%@GITHUB_REPO@%${GITHUB_REPO}%g' \
+		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' > $@
 
-fixshperm: shell/genartlist.sh shell/art2text.sh
+fixshperm: shell/genartlist.sh shell/art2text.sh shell/computed.sh
 	chmod +x $^
 
 icon:
@@ -55,11 +82,12 @@ icon:
 	@echo "*** Please put your icons to the right place."
 
 copyandstub:
-	mkdir -pv shell static/data/images static/scripts
+	mkdir -pv manage shell static/data/images static/scripts
 	touch static/data/.gitkeep static/data/images/.gitkeep
 	cp -rf src/.github .
-	cp -rf src/static/style.css static/
-	cp -rf src/shell/computed.sh src/shell/imgcheck.py shell/
+	cp -rf src/static/pico.min.css src/static/style.css src/static/manage.css static/
+	cp -rf src/static/scripts/manage.js static/scripts/
+	cp -rf src/shell/computed.sh src/shell/generate_config.py src/shell/imgcheck.py shell/
 
 clean:
-	rm -rfv .github shell static index.html
+	rm -rfv .github manage shell static index.html

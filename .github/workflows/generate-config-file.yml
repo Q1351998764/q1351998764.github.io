@@ -1,14 +1,13 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
 name: Generate config file
 
 on:
   push:
     branches:
-      - 'main'
+      - main
     paths:
       - 'meme/**'
+      - 'shell/computed.sh'
+      - 'shell/generate_config.py'
       - '.github/workflows/generate-config-file.yml'
 
 jobs:
@@ -18,14 +17,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      - name: build config
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build config
         run: |
           ./shell/computed.sh
           cat static/scripts/config.js
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update config file'
           file_pattern: static/scripts/config.js

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="@PAGELANG@">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src https://api.github.com; img-src 'self' blob: data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'none'">
+    <link rel="icon" href="/static/favicon.ico">
+    <title>@TITLE@ | 上传管理</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+    <link rel="stylesheet" href="/static/manage.css">
+</head>
+
+<body data-owner="@GITHUB_OWNER@" data-repo="@GITHUB_REPO@" data-branch="@GITHUB_BRANCH@">
+    <main class="container manage-shell">
+        <header class="manage-header">
+            <div>
+                <a href="/">@TITLE@</a>
+                <h1>上传管理</h1>
+            </div>
+            <div id="session-panel" hidden>
+                <span id="github-user"></span>
+                <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
+            </div>
+        </header>
+
+        <section id="auth-panel" class="manage-section">
+            <form id="auth-form">
+                <label for="token-input">GitHub Token</label>
+                <div class="inline-form">
+                    <input id="token-input" type="password" autocomplete="current-password" required>
+                    <button type="submit">连接 GitHub</button>
+                </div>
+                <a id="token-link"
+                    href="https://github.com/settings/personal-access-tokens/new?name=MemeBox%20Uploader&amp;description=Upload%20images%20to%20MemeBox&amp;target_name=@GITHUB_OWNER@&amp;expires_in=90&amp;contents=write"
+                    target="_blank" rel="noopener noreferrer">创建最小权限 Token</a>
+                <p id="auth-status" role="status"></p>
+            </form>
+        </section>
+
+        <section id="upload-panel" class="manage-section" hidden>
+            <form id="upload-form">
+                <div class="form-grid">
+                    <label for="category-select">
+                        分类
+                        <select id="category-select"></select>
+                    </label>
+                    <label class="check-control">
+                        <input id="new-category-toggle" type="checkbox">
+                        新建分类
+                    </label>
+                </div>
+
+                <fieldset id="new-category-fields" hidden>
+                    <div class="form-grid category-grid">
+                        <label for="category-id">
+                            目录 ID
+                            <input id="category-id" type="text" maxlength="40" placeholder="reaction">
+                        </label>
+                        <label for="category-label">
+                            显示名称
+                            <input id="category-label" type="text" maxlength="40" placeholder="反应图">
+                        </label>
+                        <label for="category-order">
+                            排序
+                            <input id="category-order" type="number" min="0" max="9999" step="10" value="100">
+                        </label>
+                        <label class="check-control">
+                            <input id="category-sensitive" type="checkbox">
+                            敏感分类
+                        </label>
+                    </div>
+                </fieldset>
+
+                <label for="group-name">
+                    多图组名称
+                    <input id="group-name" type="text" maxlength="80" placeholder="留空则每张图片单独展示">
+                </label>
+
+                <label id="drop-zone" class="drop-zone" for="file-input">
+                    <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.jfif"
+                        multiple hidden>
+                    <strong>选择或拖入图片</strong>
+                    <span>最多 50 张，单张不超过 20 MB</span>
+                </label>
+
+                <ol id="preview-list" class="preview-list"></ol>
+
+                <label for="commit-message">
+                    提交说明
+                    <input id="commit-message" type="text" maxlength="120" value="feat: upload memes from web">
+                </label>
+
+                <div class="upload-actions">
+                    <button id="upload-btn" type="submit" disabled>上传到 GitHub</button>
+                    <progress id="upload-progress" value="0" max="100" hidden></progress>
+                </div>
+                <p id="status-message" role="status"></p>
+            </form>
+        </section>
+    </main>
+
+    <script src="/static/scripts/manage.js" type="module"></script>
+</body>
+
+</html>

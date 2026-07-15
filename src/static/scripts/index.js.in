@@ -1,174 +1,361 @@
 import config from './config.js'
 
-// const development =
-//     location.host.search(/.+\.github\.io/) === -1 &&
-//     location.host.search(/nonememe\.icu/) === -1
-const memeRegex = /^meme\/((.+)\.(?:jpg|png|jfif|webp|gif|jpeg|bmp))$/i;
-// positive lookbehind (?<=) is not supported by all browsers.
-// global flag (g) will not capture groups
-// [0] is full path (meme/id.jpg)
-// [1] is file name (id.jpg)
-// [2] is id (id)
-const development = false
-const domParser = new DOMParser()
-/** @type {string[]} */
-let items = []
-let displayedItemCount = 0
+const imageRegex = /^meme\/(.+)\.(?:jpg|png|jfif|webp|gif|jpeg|bmp)$/i
+const columns = ['col1', 'col2', 'col3'].map((id) => document.getElementById(id))
+const categoryTabs = document.getElementById('category-tabs')
+const galleryShell = document.getElementById('gallery-shell')
+const galleryControls = document.getElementById('gallery-controls')
+const emptyState = document.getElementById('empty-state')
+const sensitiveControl = document.getElementById('sensitive-control')
+const sensitiveToggle = document.getElementById('show-sensitive')
+const footer = document.getElementById('footer')
+const viewElement = document.getElementById('view')
+const viewImages = document.getElementById('view-images')
+const viewSensitiveGate = document.getElementById('view-sensitive-gate')
+const viewDownload = document.getElementById('view-download')
 
-const galleryIO = new IntersectionObserver((entries) => {
-    if (entries[0].intersectionRatio > 0 && displayedItemCount < items.length)
-        loadgallery(10)
+let categories = []
+let entries = []
+let imageCount = 0
+let activeCategory = 'all'
+let visibleEntries = []
+let displayedItemCount = 0
+let galleryLoading = false
+let galleryVersion = 0
+let showSensitive = readSensitivePreference()
+
+const galleryIO = new IntersectionObserver((observedEntries) => {
+    if (!galleryShell.hidden && observedEntries.some((entry) => entry.isIntersecting)) {
+        loadGallery(12)
+    }
 })
 
-/**
- *
- * @param {number} min
- * @param {number} max
- * @returns {number}
- */
-function random(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min
+function readSensitivePreference() {
+    try {
+        return localStorage.getItem('memebox.showSensitive') === 'true'
+    } catch (_) {
+        return false
+    }
 }
 
-/**
- * @param {{
-    id: string;
-    src: string;
-    alt: string;
-    title: string;
-}} obj
- * @returns {Element}
- */
-function createMemeElement(obj) {
-    const id = 'gallery-item';
-    let temp = document.createElement('div');
-    temp.innerHTML = document.getElementById(id).innerHTML;
-    temp.querySelector("a").href = obj.id;
-    temp.querySelector("img").src = obj.src;
-    temp.querySelector("img").alt = obj.alt;
-    temp.querySelector("span").textContent = obj.title;
-    return temp.children[0];
+function saveSensitivePreference(value) {
+    try {
+        localStorage.setItem('memebox.showSensitive', String(value))
+    } catch (_) {
+        // The preference is optional when storage is unavailable.
+    }
 }
 
-/**
- * @param {string} url
- * @returns {Promise<XMLHttpRequest>}
- */
-function get(url) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        xhr.open('GET', url)
-        xhr.addEventListener('load', () => resolve(xhr))
-        xhr.addEventListener('error', () => reject(xhr))
-        xhr.send()
+function naturalCompare(left, right) {
+    return left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' })
+}
+
+function assetUrl(path) {
+    return './' + path.split('/').map((part) => encodeURIComponent(part)).join('/')
+}
+
+function randomItem(items) {
+    return items[Math.floor(Math.random() * items.length)]
+}
+
+function shuffled(items) {
+    const result = [...items]
+    for (let i = result.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[result[i], result[j]] = [result[j], result[i]]
+    }
+    return result
+}
+
+function normalizeConfig(rawConfig) {
+    const normalizedCategories = Array.isArray(rawConfig.categories)
+        ? rawConfig.categories.map((category, index) => ({
+            id: String(category.id),
+            label: String(category.label || category.id),
+            order: Number.isFinite(Number(category.order)) ? Number(category.order) : index * 10,
+            sensitive: Boolean(category.sensitive),
+        }))
+        : [{ id: 'default', label: '未分类', order: 0, sensitive: false }]
+
+    if (!normalizedCategories.some((category) => category.id === 'default')) {
+        normalizedCategories.unshift({
+            id: 'default',
+            label: '未分类',
+            order: 0,
+            sensitive: false,
+        })
+    }
+
+    const categoryMap = new Map(normalizedCategories.map((category) => [category.id, category]))
+    let normalizedEntries = []
+
+    if (Array.isArray(rawConfig.entries)) {
+        normalizedEntries = rawConfig.entries
+            .filter((entry) => entry && Array.isArray(entry.images) && entry.images.length > 0)
+            .map((entry) => {
+                const categoryId = String(entry.category || 'default')
+                if (!categoryMap.has(categoryId)) {
+                    const fallbackCategory = {
+                        id: categoryId,
+                        label: categoryId,
+                        order: normalizedCategories.length * 10,
+                        sensitive: false,
+                    }
+                    normalizedCategories.push(fallbackCategory)
+                    categoryMap.set(categoryId, fallbackCategory)
+                }
+                return {
+                    id: String(entry.id),
+                    title: String(entry.title || entry.id),
+                    category: categoryId,
+                    sensitive: Boolean(entry.sensitive || categoryMap.get(categoryId).sensitive),
+                    images: entry.images.map(String).filter((path) => imageRegex.test(path)),
+                }
+            })
+            .filter((entry) => entry.images.length > 0)
+    } else if (Array.isArray(rawConfig.items)) {
+        normalizedEntries = rawConfig.items
+            .filter((path) => typeof path === 'string' && imageRegex.test(path))
+            .map((path) => {
+                const filename = path.split('/').pop()
+                const id = filename.replace(/\.[^.]+$/, '')
+                return {
+                    id,
+                    title: id,
+                    category: 'default',
+                    sensitive: false,
+                    images: [path],
+                }
+            })
+    }
+
+    normalizedCategories.sort((left, right) =>
+        left.order - right.order || naturalCompare(left.label, right.label)
+    )
+    return { categories: normalizedCategories, entries: normalizedEntries }
+}
+
+function categoryLabel(categoryId) {
+    return categories.find((category) => category.id === categoryId)?.label || categoryId
+}
+
+function getVisibleColumns() {
+    const visibleColumns = columns.filter(
+        (column) => getComputedStyle(column).display !== 'none'
+    )
+    return visibleColumns.length > 0 ? visibleColumns : [columns[0]]
+}
+
+function createMemeElement(entry) {
+    const node = document.getElementById('gallery-item').content.firstElementChild.cloneNode(true)
+    const link = node.querySelector('a')
+    const image = node.querySelector('img')
+    const count = node.querySelector('.item-count')
+
+    link.href = `#${encodeURIComponent(entry.id)}`
+    image.src = assetUrl(entry.images[0])
+    image.alt = entry.title
+    node.querySelector('.item-title').textContent = entry.title
+    if (entry.images.length > 1) {
+        count.hidden = false
+        count.textContent = `${entry.images.length} @T_IMAGES@`
+    }
+    return node
+}
+
+function waitForImage(image) {
+    if (image.complete) return Promise.resolve()
+    return new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true })
+        image.addEventListener('error', resolve, { once: true })
     })
 }
 
-async function loadgallery(remainItemCount) {
-    if (remainItemCount <= 0 || displayedItemCount >= items.length) {
-        if (displayedItemCount >= items.length) {
-            console.log("已加载全部图片。");
-        }
-        galleryIO.observe(document.getElementById('footer'))
+async function loadGallery(remainItemCount) {
+    const version = galleryVersion
+    if (galleryLoading || remainItemCount <= 0 || displayedItemCount >= visibleEntries.length) {
         return
     }
-    galleryIO.unobserve(document.getElementById('footer'))
 
-    // 获取高度最小的列
-    const column = [
-        document.getElementById('col1'),
-        document.getElementById('col2'),
-        document.getElementById('col3'),
-    ].sort((a, b) => a.offsetHeight - b.offsetHeight)[0]
+    galleryLoading = true
+    galleryIO.unobserve(footer)
+    try {
+        while (
+            version === galleryVersion &&
+            remainItemCount > 0 &&
+            displayedItemCount < visibleEntries.length
+        ) {
+            const entry = visibleEntries[displayedItemCount]
+            displayedItemCount += 1
+            remainItemCount -= 1
 
-    let match = items[displayedItemCount].match(memeRegex);
-    if (match === null) {
-        displayedItemCount += 1;
-        loadgallery(remainItemCount - 1);
-        return;
-    }
-    let filename = match[1];
-    let id = match[2];
-    const node = createMemeElement({
-        id: `#${encodeURIComponent(id)}`,
-        src: "./meme/" + encodeURIComponent(filename),
-        alt: items[displayedItemCount],
-        title: `# ${id}`,
-    })
-
-    // 加载好以后再执行下一个图片的加载以保证顺序没问题
-    node.querySelector('img').addEventListener('load', () =>
-        loadgallery(remainItemCount - 1)
-    )
-    column.append(node)
-    displayedItemCount += 1
-}
-
-function view() {
-    const view = document.getElementById('view')
-    view.style.display = {
-        true: 'none',
-        false: 'block',
-    }[!location.hash || location.hash == '#']
-    let name = decodeURIComponent(
-        location.hash.substring(1, location.hash.length)
-    )
-    view.querySelector('h2').innerText = `# ${name}`
-    for (const i of items) {
-        let match = i.match(memeRegex);
-        if (match[2] === name) {
-            name = match[1];
-            break;
+            const column = getVisibleColumns().sort(
+                (left, right) => left.offsetHeight - right.offsetHeight
+            )[0]
+            const node = createMemeElement(entry)
+            column.append(node)
+            await waitForImage(node.querySelector('img'))
+        }
+    } finally {
+        if (version === galleryVersion) {
+            galleryLoading = false
+            if (displayedItemCount < visibleEntries.length) galleryIO.observe(footer)
         }
     }
+}
 
-    let imgSource = "./meme/" + encodeURIComponent(name);
-    view.querySelector('img').src = imgSource;
-    view.querySelector('img').alt = name;
-    view.querySelector('a').href = imgSource;
-    window.scrollTo({
-        top: view.offsetTop,
-        behavior: 'smooth',
+function filteredEntries() {
+    return entries.filter((entry) => {
+        const categoryMatches = activeCategory === 'all' || entry.category === activeCategory
+        return categoryMatches && (showSensitive || !entry.sensitive)
     })
 }
 
-async function initgallery() {
-    document.getElementById(
-        'description'
-    ).innerHTML = `@DESC@, @T_NIMGS@`
-    document.getElementById('refresh-btn').onclick = () => {
-        location.hash = `#${items[random(0, items.length - 1)].match(memeRegex)[2]}`
-    }
-    for (let i = 0; i < items.length - 1; i++) {
-        const j = random(i, items.length - 1)
-        const temp = items[i]
-        items[i] = items[j]
-        items[j] = temp
-    }
-    await loadgallery(10)
-    galleryIO.observe(document.getElementById('footer'))
-    view()
+function hiddenBySensitiveFilter() {
+    return entries.some((entry) => {
+        const categoryMatches = activeCategory === 'all' || entry.category === activeCategory
+        return categoryMatches && entry.sensitive
+    })
 }
 
-; (async () => {
-    /**
-     * 判断使用何种 API , 获取图片列表
-     */
+function renderGallery() {
+    galleryVersion += 1
+    galleryLoading = false
+    galleryIO.unobserve(footer)
+    columns.forEach((column) => column.replaceChildren())
+    displayedItemCount = 0
+    visibleEntries = shuffled(filteredEntries())
+    emptyState.hidden = visibleEntries.length > 0
+    emptyState.textContent =
+        !showSensitive && hiddenBySensitiveFilter()
+            ? '@T_SENSITIVE_HIDDEN@'
+            : '@T_EMPTY@'
+    loadGallery(12)
+}
 
-    // 开发环境(使用 live server)
-    if (development) {
-        for (const i of domParser
-            .parseFromString((await get('../meme/')).response, 'text/html')
-            .querySelectorAll('#files a.icon-image')) {
-            items.push(
-                'meme/' + decodeURIComponent(i.href.match(memeRegex)[1])
+function renderCategoryTabs() {
+    categoryTabs.replaceChildren()
+    const tabs = [{ id: 'all', label: '@T_ALL@' }, ...categories]
+    for (const category of tabs) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'category-tab'
+        button.dataset.category = category.id
+        button.setAttribute('aria-pressed', String(activeCategory === category.id))
+        button.textContent = category.label
+        button.addEventListener('click', () => {
+            activeCategory = category.id
+            categoryTabs.querySelectorAll('button').forEach((tab) =>
+                tab.setAttribute('aria-pressed', String(tab === button))
             )
-        }
-    } else {
-        // 生产环境(使用静态文件)
-        items = config.items
+            if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+            showGallery()
+            renderGallery()
+        })
+        categoryTabs.append(button)
+    }
+}
+
+function currentEntry() {
+    if (!location.hash || location.hash === '#') return null
+    try {
+        const id = decodeURIComponent(location.hash.slice(1))
+        return entries.find((entry) => entry.id === id) || null
+    } catch (_) {
+        return null
+    }
+}
+
+function showGallery() {
+    viewElement.hidden = true
+    galleryControls.hidden = false
+    galleryShell.hidden = false
+}
+
+function renderViewImage(entry, imagePath, index) {
+    const node = document.getElementById('view-image').content.firstElementChild.cloneNode(true)
+    const imageUrl = assetUrl(imagePath)
+    const image = node.querySelector('img')
+    const zoomLink = node.querySelector('a[target]')
+    const downloadLink = node.querySelector('a[download]')
+
+    image.src = imageUrl
+    image.alt = `${entry.title} ${index + 1}`
+    if (index === 0) image.loading = 'eager'
+    zoomLink.href = imageUrl
+    downloadLink.href = imageUrl
+    node.querySelector('figcaption span').textContent = `${index + 1} / ${entry.images.length}`
+    return node
+}
+
+function renderView() {
+    const entry = currentEntry()
+    if (!entry) {
+        showGallery()
+        return
     }
 
-    initgallery()
-    window.addEventListener('hashchange', view)
-})()
+    viewElement.hidden = false
+    galleryControls.hidden = true
+    galleryShell.hidden = true
+    viewImages.replaceChildren()
+    document.getElementById('view-title').textContent = entry.title
+    document.getElementById('view-category').textContent = categoryLabel(entry.category)
+
+    const blocked = entry.sensitive && !showSensitive
+    viewSensitiveGate.hidden = !blocked
+    viewImages.hidden = blocked
+    viewDownload.hidden = blocked || entry.images.length !== 1
+
+    if (!blocked) {
+        entry.images.forEach((imagePath, index) =>
+            viewImages.append(renderViewImage(entry, imagePath, index))
+        )
+        if (entry.images.length === 1) viewDownload.href = assetUrl(entry.images[0])
+    }
+
+    window.scrollTo({ top: viewElement.offsetTop, behavior: 'smooth' })
+}
+
+function setSensitiveVisibility(value) {
+    showSensitive = value
+    sensitiveToggle.checked = value
+    saveSensitivePreference(value)
+    renderGallery()
+    renderView()
+}
+
+function init() {
+    const normalized = normalizeConfig(config)
+    categories = normalized.categories
+    entries = normalized.entries
+    imageCount = entries.reduce((total, entry) => total + entry.images.length, 0)
+
+    document.getElementById('description').textContent = `@DESC@, @T_NIMGS@`
+    sensitiveControl.hidden = !entries.some((entry) => entry.sensitive)
+    sensitiveToggle.checked = showSensitive
+    sensitiveToggle.addEventListener('change', () =>
+        setSensitiveVisibility(sensitiveToggle.checked)
+    )
+    document.getElementById('reveal-sensitive').addEventListener('click', () =>
+        setSensitiveVisibility(true)
+    )
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+        const candidates = filteredEntries()
+        if (candidates.length > 0) location.hash = `#${encodeURIComponent(randomItem(candidates).id)}`
+    })
+
+    renderCategoryTabs()
+    renderGallery()
+    renderView()
+    window.addEventListener('hashchange', renderView)
+    let resizeTimer
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer)
+        resizeTimer = setTimeout(() => {
+            if (viewElement.hidden) renderGallery()
+        }, 150)
+    })
+}
+
+init()

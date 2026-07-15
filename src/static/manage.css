@@ -1,0 +1,237 @@
+:root {
+    --manage-radius: 6px;
+}
+
+.manage-shell {
+    max-width: 920px;
+}
+
+.manage-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px 0 18px;
+}
+
+.manage-header h1 {
+    margin: 4px 0 0;
+}
+
+#session-panel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#session-panel button {
+    width: auto;
+    margin: 0;
+    padding: 6px 12px;
+}
+
+.manage-section {
+    padding: 24px 0;
+    border-top: 1px solid var(--muted-border-color);
+}
+
+.inline-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.inline-form button {
+    width: auto;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: end;
+}
+
+.category-grid {
+    grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr) 120px auto;
+}
+
+.check-control {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    margin-bottom: var(--spacing);
+    white-space: nowrap;
+}
+
+.check-control input {
+    margin-bottom: 0;
+}
+
+fieldset {
+    padding: 16px;
+    margin-bottom: var(--spacing);
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--manage-radius);
+}
+
+.drop-zone {
+    display: grid;
+    min-height: 150px;
+    margin: 8px 0 20px;
+    padding: 24px;
+    place-content: center;
+    color: var(--muted-color);
+    border: 1px dashed var(--muted-border-color);
+    border-radius: var(--manage-radius);
+    text-align: center;
+    cursor: pointer;
+}
+
+.drop-zone strong {
+    color: var(--primary);
+}
+
+.drop-zone span {
+    font-size: 13px;
+}
+
+.drop-zone.is-dragging {
+    background: var(--card-background-color);
+    border-color: var(--primary);
+}
+
+.preview-list {
+    display: grid;
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+    counter-reset: preview;
+}
+
+.preview-item {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px;
+    margin: 0;
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--manage-radius);
+    background: var(--card-background-color);
+}
+
+.preview-item img {
+    width: 72px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.preview-details {
+    min-width: 0;
+}
+
+.preview-details strong,
+.preview-details small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-details small {
+    color: var(--muted-color);
+}
+
+.preview-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.preview-actions button {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    place-items: center;
+    border-radius: 4px;
+}
+
+.upload-actions {
+    display: grid;
+    grid-template-columns: auto minmax(160px, 1fr);
+    gap: 16px;
+    align-items: center;
+}
+
+.upload-actions button {
+    width: auto;
+    margin: 0;
+}
+
+.upload-actions progress {
+    margin: 0;
+}
+
+#status-message {
+    min-height: 24px;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+}
+
+#status-message[data-state="error"] {
+    color: var(--del-color);
+}
+
+#auth-status[data-state="error"] {
+    color: var(--del-color);
+}
+
+#status-message[data-state="success"] {
+    color: var(--ins-color);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 720px) {
+    .manage-header,
+    .form-grid,
+    .category-grid,
+    .inline-form,
+    .upload-actions {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+    }
+
+    .manage-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .inline-form button,
+    .upload-actions button {
+        width: 100%;
+    }
+
+    .check-control {
+        min-height: auto;
+    }
+
+    .preview-item {
+        grid-template-columns: 58px minmax(0, 1fr);
+    }
+
+    .preview-item img {
+        width: 58px;
+        height: 52px;
+    }
+
+    .preview-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+    }
+}

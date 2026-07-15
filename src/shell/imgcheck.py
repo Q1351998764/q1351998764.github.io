@@ -1,12 +1,15 @@
+from pathlib import Path
 from PIL import Image
-import sys
-import os
 import json
+import sys
 
-# If you want to skip some images, add them here
-skip_list = [
-    ...
-]
+
+# Add repository-relative image paths here when an image should be skipped.
+skip_list = {
+    ...,
+}
+image_suffixes = {'.jpg', '.jpeg', '.png', '.jfif', '.webp', '.gif', '.bmp'}
+
 
 def d_hash(image, hash_size=8):
     image2 = image.convert('L').resize(
@@ -31,69 +34,60 @@ def d_hash(image, hash_size=8):
 
 
 def count_similarity(hash1, hash2):
-    samiliarity = 0
-    for i in enumerate(hash1):
-        if i[1] == hash2[i[0]]:
-            samiliarity += 1
-    return samiliarity/len(hash1)
+    similarity = 0
+    for index, value in enumerate(hash1):
+        if value == hash2[index]:
+            similarity += 1
+    return similarity / len(hash1)
 
 
 hash_map = {}
 
-# Get dHash for each image in meme folder
 print('Calculating dHash for each image')
-for filename in os.listdir('meme'):
-    if filename in skip_list:
+for image_path in sorted(Path('meme').rglob('*')):
+    if not image_path.is_file() or image_path.suffix.casefold() not in image_suffixes:
+        continue
+    relative_path = image_path.as_posix()
+    if relative_path in skip_list:
         continue
     try:
-        image = Image.open('meme/' + filename)
-        hash_map[filename] = d_hash(image, 32)
-    except:
-        print(f'Failed to calculate dHash for {filename}')
+        with Image.open(image_path) as image:
+            hash_map[relative_path] = d_hash(image, 32)
+    except Exception as error:
+        print(f'Failed to calculate dHash for {relative_path}: {error}')
 
-# Check for similar images
 print('Checking for similar images')
 similar_images = []
-for (name, hash1) in hash_map.copy().items():
-    new_map = hash_map.copy()
-    del new_map[name]
-    for (name2, hash2) in new_map.items():
-        samiliarity = count_similarity(hash1, hash2)
-        if samiliarity > 0.8:
-            similar_images.append((name, name2, samiliarity))
+for name, hash1 in hash_map.items():
+    for name2, hash2 in hash_map.items():
+        if name >= name2:
+            continue
+        similarity = count_similarity(hash1, hash2)
+        if similarity > 0.8:
+            similar_images.append((name, name2, similarity))
 
-# Collect similar images
 output_map = {}
-for (name, name2, samiliarity) in similar_images:
-    if name not in output_map:
-        output_map[name] = {}
-    if name2 not in output_map:
-        output_map[name2] = {}
-    if not (name2 in output_map[name].keys()):
-        output_map[name][name2] = samiliarity
-    if not (name in output_map[name2].keys()):
-        output_map[name2][name] = samiliarity
+for name, name2, similarity in similar_images:
+    output_map.setdefault(name, {})[name2] = similarity
+    output_map.setdefault(name2, {})[name] = similarity
 
-# Sort similar images
-output_map = sorted(output_map.items(), key=lambda x: len(x[1]), reverse=True)
+output_map = sorted(output_map.items(), key=lambda item: len(item[1]), reverse=True)
 
-# Print similar images
 print('Similar images:')
-for (name, similar) in output_map:
+for name, similar in output_map:
     print(f'{name} is similar to:')
-    for (name2, samiliarity) in similar.items():
-        print(f'    {name2} ({samiliarity*100:.2f}%)')
+    for name2, similarity in similar.items():
+        print(f'    {name2} ({similarity * 100:.2f}%)')
 
-# Write dHash map to file
-with open('static/data/images/hash_map.json', 'w', encoding='utf8') as f:
-    json.dump(hash_map, f, indent=4, ensure_ascii=False)
-# Write similar images to file
-with open('static/data/images/similar_images.json', 'w', encoding='utf8') as f:
-    json.dump(output_map, f, indent=4, ensure_ascii=False)
+output_directory = Path('static/data/images')
+output_directory.mkdir(parents=True, exist_ok=True)
+with (output_directory / 'hash_map.json').open('w', encoding='utf8') as file:
+    json.dump(hash_map, file, indent=4, ensure_ascii=False)
+with (output_directory / 'similar_images.json').open('w', encoding='utf8') as file:
+    json.dump(output_map, file, indent=4, ensure_ascii=False)
 
-if len(similar_images) == 0:
-    print('All images are unique')
-    sys.exit(0)
-else:
+if similar_images:
     print('Some images are similar')
-    sys.exit(0)
+else:
+    print('All images are unique')
+sys.exit(0)
