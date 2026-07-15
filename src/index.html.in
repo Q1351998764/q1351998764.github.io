@@ -110,7 +110,7 @@
         </figure>
     </template>
 
-    <script src="./static/scripts/index.js" type="module"></script>
+    <script src="./static/scripts/index.js?v=2" type="module"></script>
 </body>
 
 </html>

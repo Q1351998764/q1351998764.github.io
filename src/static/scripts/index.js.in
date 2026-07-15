@@ -1,4 +1,4 @@
-import config from './config.js'
+const config = (await import(`./config.js?v=${Date.now()}`)).default
 
 const imageRegex = /^meme\/(.+)\.(?:jpg|png|jfif|webp|gif|jpeg|bmp)$/i
 const columns = ['col1', 'col2', 'col3'].map((id) => document.getElementById(id))
