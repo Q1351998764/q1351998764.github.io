@@ -6,6 +6,12 @@ export default {
       "label": "未分类",
       "order": 0,
       "sensitive": false
+    },
+    {
+      "id": "safety-risks",
+      "label": "安全隐患",
+      "order": 100,
+      "sensitive": false
     }
   ],
   "entries": [
@@ -4058,6 +4064,136 @@ export default {
         "meme/20260715-013131-21-591ae1d26463dcdb3e4bc9359dc2121f.png"
       ],
       "uploadedAt": "2026-07-15T09:31:40+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda",
+      "title": "20260718-152054-01-21094ffe029742cca26669555ca7ffda",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54",
+      "title": "20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-03-ceb545570b71362907eae1c61e58e32f",
+      "title": "20260718-152054-03-ceb545570b71362907eae1c61e58e32f",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-03-ceb545570b71362907eae1c61e58e32f.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-04-80674081131611e5621af31e17ed45b6",
+      "title": "20260718-152054-04-80674081131611e5621af31e17ed45b6",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-04-80674081131611e5621af31e17ed45b6.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-05-fa0d0f27393d9d8595583a18fc4044e8",
+      "title": "20260718-152054-05-fa0d0f27393d9d8595583a18fc4044e8",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-05-fa0d0f27393d9d8595583a18fc4044e8.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-06-b06220dd9bdd8b2839bf2e7e3868cec7",
+      "title": "20260718-152054-06-b06220dd9bdd8b2839bf2e7e3868cec7",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-06-b06220dd9bdd8b2839bf2e7e3868cec7.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-07-4ff9e11c6076a51af60b7b27a8c27058",
+      "title": "20260718-152054-07-4ff9e11c6076a51af60b7b27a8c27058",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-07-4ff9e11c6076a51af60b7b27a8c27058.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-08-95134af5ba0eb1c546c6397479724473",
+      "title": "20260718-152054-08-95134af5ba0eb1c546c6397479724473",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-08-95134af5ba0eb1c546c6397479724473.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-09-8a573c90f47719bda286c92075386216",
+      "title": "20260718-152054-09-8a573c90f47719bda286c92075386216",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-09-8a573c90f47719bda286c92075386216.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-10-ec157957b6ade3ef438b65029775d3ab",
+      "title": "20260718-152054-10-ec157957b6ade3ef438b65029775d3ab",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-10-ec157957b6ade3ef438b65029775d3ab.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-11-3715e2a171c3becd7cb67c8708dcfbd5",
+      "title": "20260718-152054-11-3715e2a171c3becd7cb67c8708dcfbd5",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-11-3715e2a171c3becd7cb67c8708dcfbd5.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-12-80a307fff7e402e22c03e9eb93d1444a",
+      "title": "20260718-152054-12-80a307fff7e402e22c03e9eb93d1444a",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-12-80a307fff7e402e22c03e9eb93d1444a.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4",
+      "title": "20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4.jpg"
+      ],
+      "uploadedAt": "2026-07-18T23:20:59+08:00"
     }
   ],
   "uploads": {
@@ -4465,6 +4601,19 @@ export default {
     "meme/20260715-013131-18-990d8c66eda3e94ed08ba5f463398929.png": "2026-07-15T09:31:40+08:00",
     "meme/20260715-013131-19-bfb7b95b2b837f305bbd676ce9d21084.png": "2026-07-15T09:31:40+08:00",
     "meme/20260715-013131-20-697e4f828c5096d25ad0af90289d7f49.png": "2026-07-15T09:31:40+08:00",
-    "meme/20260715-013131-21-591ae1d26463dcdb3e4bc9359dc2121f.png": "2026-07-15T09:31:40+08:00"
+    "meme/20260715-013131-21-591ae1d26463dcdb3e4bc9359dc2121f.png": "2026-07-15T09:31:40+08:00",
+    "meme/safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-03-ceb545570b71362907eae1c61e58e32f.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-04-80674081131611e5621af31e17ed45b6.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-05-fa0d0f27393d9d8595583a18fc4044e8.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-06-b06220dd9bdd8b2839bf2e7e3868cec7.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-07-4ff9e11c6076a51af60b7b27a8c27058.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-08-95134af5ba0eb1c546c6397479724473.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-09-8a573c90f47719bda286c92075386216.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-10-ec157957b6ade3ef438b65029775d3ab.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-11-3715e2a171c3becd7cb67c8708dcfbd5.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-12-80a307fff7e402e22c03e9eb93d1444a.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4.jpg": "2026-07-18T23:20:59+08:00"
   }
 }
