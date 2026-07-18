@@ -5,6 +5,12 @@
       "label": "未分类",
       "order": 0,
       "sensitive": false
+    },
+    {
+      "id": "safety-risks",
+      "label": "安全隐患",
+      "order": 100,
+      "sensitive": false
     }
   ]
 }
