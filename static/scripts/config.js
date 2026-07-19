@@ -4077,6 +4077,18 @@ export default {
       "uploadedAt": "2026-07-19T10:01:27+08:00"
     },
     {
+      "id": "default/散光",
+      "title": "散光",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/散光/01.png",
+        "meme/default/散光/02.png",
+        "meme/default/散光/03.png"
+      ],
+      "uploadedAt": "2026-07-19T10:15:07+08:00"
+    },
+    {
       "id": "safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda",
       "title": "20260718-152054-01-21094ffe029742cca26669555ca7ffda",
       "category": "safety-risks",
@@ -4615,6 +4627,9 @@ export default {
     "meme/20260715-013131-21-591ae1d26463dcdb3e4bc9359dc2121f.png": "2026-07-15T09:31:40+08:00",
     "meme/default/亚空间/01.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/亚空间/02.jpg": "2026-07-19T10:01:27+08:00",
+    "meme/default/散光/01.png": "2026-07-19T10:15:07+08:00",
+    "meme/default/散光/02.png": "2026-07-19T10:15:07+08:00",
+    "meme/default/散光/03.png": "2026-07-19T10:15:07+08:00",
     "meme/safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-03-ceb545570b71362907eae1c61e58e32f.jpg": "2026-07-18T23:20:59+08:00",
