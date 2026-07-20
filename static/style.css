@@ -211,9 +211,12 @@
 .item-media {
     position: relative;
     min-height: 72px;
+    background: var(--muted-border-color);
+}
+
+.item.is-long .item-media {
     max-height: min(85vh, 900px);
     overflow: hidden;
-    background: var(--muted-border-color);
 }
 
 .item-media img {

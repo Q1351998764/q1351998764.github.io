@@ -10,7 +10,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>@TITLE@ | @DESC@</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=4">
 </head>
 
 <body>
@@ -121,7 +121,7 @@
         </figure>
     </template>
 
-    <script src="./static/scripts/index.js?v=5" type="module"></script>
+    <script src="./static/scripts/index.js?v=6" type="module"></script>
 </body>
 
 </html>

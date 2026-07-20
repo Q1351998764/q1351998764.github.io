@@ -225,8 +225,10 @@ function createMemeElement(entry) {
         }
     })
     image.addEventListener('load', () => {
-        longBadge.hidden = image.naturalWidth === 0
-            || image.naturalHeight / image.naturalWidth < 3
+        const isLongImage = image.naturalWidth > 0
+            && image.naturalHeight / image.naturalWidth > 4
+        node.classList.toggle('is-long', isLongImage)
+        longBadge.hidden = !isLongImage
     }, { once: true })
     image.src = assetUrl(entry.images[0])
     image.alt = entry.title
