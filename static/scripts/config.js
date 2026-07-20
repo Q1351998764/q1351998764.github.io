@@ -4379,6 +4379,17 @@ export default {
       "uploadedAt": "2026-07-19T10:15:07+08:00"
     },
     {
+      "id": "default/炒股",
+      "title": "炒股",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/炒股/01.jpg",
+        "meme/default/炒股/02.jpg"
+      ],
+      "uploadedAt": "2026-07-20T14:06:38+08:00"
+    },
+    {
       "id": "safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda",
       "title": "20260718-152054-01-21094ffe029742cca26669555ca7ffda",
       "category": "safety-risks",
@@ -4949,6 +4960,8 @@ export default {
     "meme/default/散光/01.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/02.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/03.png": "2026-07-19T10:15:07+08:00",
+    "meme/default/炒股/01.jpg": "2026-07-20T14:06:38+08:00",
+    "meme/default/炒股/02.jpg": "2026-07-20T14:06:38+08:00",
     "meme/safety-risks/20260718-152054-01-21094ffe029742cca26669555ca7ffda.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-02-2861ec77b4d603a0b78e777c2105ac54.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-03-ceb545570b71362907eae1c61e58e32f.jpg": "2026-07-18T23:20:59+08:00",
