@@ -4614,6 +4614,18 @@ export default {
         "meme/safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4.jpg"
       ],
       "uploadedAt": "2026-07-18T23:20:59+08:00"
+    },
+    {
+      "id": "safety-risks/电池寿命",
+      "title": "电池寿命",
+      "category": "safety-risks",
+      "sensitive": false,
+      "images": [
+        "meme/safety-risks/电池寿命/01.jpg",
+        "meme/safety-risks/电池寿命/02.jpg",
+        "meme/safety-risks/电池寿命/03.jpg"
+      ],
+      "uploadedAt": "2026-07-20T15:42:34+08:00"
     }
   ],
   "uploads": {
@@ -5079,6 +5091,9 @@ export default {
     "meme/safety-risks/20260718-152054-10-ec157957b6ade3ef438b65029775d3ab.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-11-3715e2a171c3becd7cb67c8708dcfbd5.jpg": "2026-07-18T23:20:59+08:00",
     "meme/safety-risks/20260718-152054-12-80a307fff7e402e22c03e9eb93d1444a.jpg": "2026-07-18T23:20:59+08:00",
-    "meme/safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4.jpg": "2026-07-18T23:20:59+08:00"
+    "meme/safety-risks/20260718-152054-13-d9cf4c5986dac1dc2a4bde501c1c92c4.jpg": "2026-07-18T23:20:59+08:00",
+    "meme/safety-risks/电池寿命/01.jpg": "2026-07-20T15:42:34+08:00",
+    "meme/safety-risks/电池寿命/02.jpg": "2026-07-20T15:42:34+08:00",
+    "meme/safety-risks/电池寿命/03.jpg": "2026-07-20T15:42:34+08:00"
   }
 }
