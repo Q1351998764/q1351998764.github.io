@@ -23,6 +23,8 @@ let visibleEntries = []
 let displayedItemCount = 0
 let galleryLoading = false
 let galleryVersion = 0
+let galleryReturnState = null
+let galleryRestoreVersion = 0
 let showSensitive = readSensitivePreference()
 let sortOrder = readSortPreference()
 
@@ -205,6 +207,22 @@ function createMemeElement(entry) {
     const count = node.querySelector('.item-count')
 
     link.href = `#${encodeURIComponent(entry.id)}`
+    node.dataset.entryId = entry.id
+    link.addEventListener('click', (event) => {
+        if (
+            event.button !== 0
+            || event.metaKey
+            || event.ctrlKey
+            || event.shiftKey
+            || event.altKey
+        ) return
+        galleryRestoreVersion += 1
+        galleryReturnState = {
+            entryId: entry.id,
+            scrollY: window.scrollY,
+            viewportTop: node.getBoundingClientRect().top,
+        }
+    })
     image.src = assetUrl(entry.images[0])
     image.alt = entry.title
     node.querySelector('.item-title').textContent = entry.title
@@ -324,6 +342,44 @@ function showGallery() {
     galleryShell.hidden = false
 }
 
+function renderedGalleryEntry(entryId) {
+    return [...document.querySelectorAll('.item')].find(
+        (item) => item.dataset.entryId === entryId
+    ) || null
+}
+
+async function restoreGalleryPosition() {
+    const state = galleryReturnState
+    if (!state) return
+    const restoreVersion = ++galleryRestoreVersion
+
+    let target = renderedGalleryEntry(state.entryId)
+    while (!target && galleryLoading && restoreVersion === galleryRestoreVersion) {
+        await new Promise((resolve) => setTimeout(resolve, 16))
+        target = renderedGalleryEntry(state.entryId)
+    }
+
+    while (
+        !target
+        && displayedItemCount < visibleEntries.length
+        && restoreVersion === galleryRestoreVersion
+    ) {
+        await loadGallery(12)
+        target = renderedGalleryEntry(state.entryId)
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    if (restoreVersion !== galleryRestoreVersion) return
+
+    if (target) {
+        const targetY = window.scrollY + target.getBoundingClientRect().top - state.viewportTop
+        window.scrollTo({ top: targetY, behavior: 'auto' })
+    } else {
+        window.scrollTo({ top: state.scrollY, behavior: 'auto' })
+    }
+    galleryReturnState = null
+}
+
 function renderViewImage(entry, imagePath, index) {
     const node = document.getElementById('view-image').content.firstElementChild.cloneNode(true)
     const imageUrl = assetUrl(imagePath)
@@ -344,6 +400,7 @@ function renderView() {
     const entry = currentEntry()
     if (!entry) {
         showGallery()
+        restoreGalleryPosition()
         return
     }
 
@@ -401,6 +458,10 @@ function init() {
     document.getElementById('refresh-btn').addEventListener('click', () => {
         const candidates = filteredEntries()
         if (candidates.length > 0) location.hash = `#${encodeURIComponent(randomItem(candidates).id)}`
+    })
+    document.getElementById('view-back-btn').addEventListener('click', () => {
+        history.replaceState(null, '', location.pathname + location.search)
+        renderView()
     })
 
     renderCategoryTabs()
