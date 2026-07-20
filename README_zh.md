@@ -59,6 +59,8 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 - `sensitive` 为 `true` 时，网页默认不加载该分类的图片。
 - 未在配置中声明的一级目录也会自动成为分类，显示名称使用目录名。
 - 首页可以按随机、最新上传或最早上传排序。
+- 高宽比超过 3:1 的超长图片会在首页标记为“长图”，预览限制在约一屏高度；
+  点进详情后仍显示完整原图。
 
 上传图片后，GitHub Actions 会运行 `shell/generate_config.py`，自动更新
 `static/scripts/config.js`。上传时间取图片首次加入 Git 历史的提交时间；移动分类、
@@ -167,6 +169,7 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 |T_SORT_OLDEST|最早上传排序选项|
 |T_NTEXTS|文字梗统计信息|
 |T_TEXTS|文字篇数单位|
+|T_LONG_IMAGE|超长图片预览标记|
 
 ### 许可证
 

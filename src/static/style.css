@@ -211,6 +211,8 @@
 .item-media {
     position: relative;
     min-height: 72px;
+    max-height: min(85vh, 900px);
+    overflow: hidden;
     background: var(--muted-border-color);
 }
 
@@ -220,15 +222,23 @@
     height: auto;
 }
 
-.item-count {
+.item-count,
+.item-long {
     position: absolute;
-    right: 8px;
     bottom: 8px;
     padding: 3px 7px;
     color: #fff;
     background: rgba(24, 28, 33, 0.82);
     border-radius: 4px;
     font-size: 12px;
+}
+
+.item-count {
+    right: 8px;
+}
+
+.item-long {
+    left: 8px;
 }
 
 .item-title {

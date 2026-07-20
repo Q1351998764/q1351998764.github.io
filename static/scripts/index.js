@@ -32,7 +32,7 @@ const galleryIO = new IntersectionObserver((observedEntries) => {
     if (!galleryShell.hidden && observedEntries.some((entry) => entry.isIntersecting)) {
         loadGallery(12)
     }
-})
+}, { rootMargin: '800px 0px' })
 
 function readSensitivePreference() {
     try {
@@ -205,6 +205,7 @@ function createMemeElement(entry) {
     const link = node.querySelector('a')
     const image = node.querySelector('img')
     const count = node.querySelector('.item-count')
+    const longBadge = node.querySelector('.item-long')
 
     link.href = `#${encodeURIComponent(entry.id)}`
     node.dataset.entryId = entry.id
@@ -223,6 +224,10 @@ function createMemeElement(entry) {
             viewportTop: node.getBoundingClientRect().top,
         }
     })
+    image.addEventListener('load', () => {
+        longBadge.hidden = image.naturalWidth === 0
+            || image.naturalHeight / image.naturalWidth < 3
+    }, { once: true })
     image.src = assetUrl(entry.images[0])
     image.alt = entry.title
     node.querySelector('.item-title').textContent = entry.title

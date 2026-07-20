@@ -10,7 +10,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>@TITLE@ | @DESC@</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=3">
 </head>
 
 <body>
@@ -101,6 +101,7 @@
             <a href="#">
                 <div class="item-media">
                     <img alt="" loading="lazy">
+                    <span class="item-long" hidden>@T_LONG_IMAGE@</span>
                     <span class="item-count" hidden></span>
                 </div>
                 <span class="item-title"></span>
@@ -120,7 +121,7 @@
         </figure>
     </template>
 
-    <script src="./static/scripts/index.js?v=4" type="module"></script>
+    <script src="./static/scripts/index.js?v=5" type="module"></script>
 </body>
 
 </html>

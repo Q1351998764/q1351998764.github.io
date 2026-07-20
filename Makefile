@@ -31,6 +31,7 @@ T_SORT_NEWEST?=最新上传
 T_SORT_OLDEST?=最早上传
 T_NTEXTS?=目前已有 $${entries.length} 组，共 $${documentCount} 篇。
 T_TEXTS?=篇
+T_LONG_IMAGE?=长图
 endif
 
 T_MEMEPIC?=Picture memes
@@ -52,6 +53,7 @@ T_SORT_NEWEST?=Newest uploads
 T_SORT_OLDEST?=Oldest uploads
 T_NTEXTS?=$${entries.length} entries and $${documentCount} documents.
 T_TEXTS?=documents
+T_LONG_IMAGE?=Tall image
 
 .PHONY: clean icon copyandstub fixshperm
 
@@ -85,6 +87,7 @@ ${GENERATED_TEMPLATES}: %: src/%.in
 		| sed 's%@T_SORT_OLDEST@%${T_SORT_OLDEST}%g' \
 		| sed 's%@T_NTEXTS@%${T_NTEXTS}%g' \
 		| sed 's%@T_TEXTS@%${T_TEXTS}%g' \
+		| sed 's%@T_LONG_IMAGE@%${T_LONG_IMAGE}%g' \
 		| sed 's%@GITHUB_OWNER@%${GITHUB_OWNER}%g' \
 		| sed 's%@GITHUB_REPO@%${GITHUB_REPO}%g' \
 		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' > $@
