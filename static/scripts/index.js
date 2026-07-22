@@ -25,6 +25,8 @@ let galleryLoading = false
 let galleryVersion = 0
 let galleryReturnState = null
 let galleryRestoreVersion = 0
+let renderedGalleryColumnCount = galleryColumnCountForViewport()
+let galleryNeedsLayout = false
 let showSensitive = readSensitivePreference()
 let sortOrder = readSortPreference()
 
@@ -193,6 +195,12 @@ function categoryLabel(categoryId) {
     return categories.find((category) => category.id === categoryId)?.label || categoryId
 }
 
+function galleryColumnCountForViewport() {
+    if (window.matchMedia('(max-width: 620px)').matches) return 1
+    if (window.matchMedia('(max-width: 900px)').matches) return 2
+    return 3
+}
+
 function getVisibleColumns() {
     const visibleColumns = columns.filter(
         (column) => getComputedStyle(column).display !== 'none'
@@ -296,6 +304,8 @@ function hiddenBySensitiveFilter() {
 }
 
 function renderGallery() {
+    renderedGalleryColumnCount = galleryColumnCountForViewport()
+    galleryNeedsLayout = false
     galleryVersion += 1
     galleryLoading = false
     galleryIO.unobserve(footer)
@@ -407,6 +417,7 @@ function renderView() {
     const entry = currentEntry()
     if (!entry) {
         showGallery()
+        if (galleryNeedsLayout) renderGallery()
         restoreGalleryPosition()
         return
     }
@@ -479,7 +490,13 @@ function init() {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer)
         resizeTimer = setTimeout(() => {
+            const columnCount = galleryColumnCountForViewport()
+            if (columnCount === renderedGalleryColumnCount) {
+                galleryNeedsLayout = false
+                return
+            }
             if (viewElement.hidden) renderGallery()
+            else galleryNeedsLayout = true
         }, 150)
     })
 }
