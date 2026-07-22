@@ -23,6 +23,12 @@
       "label": "地狱笑话",
       "order": 100,
       "sensitive": false
+    },
+    {
+      "id": "nndl",
+      "label": "男女对立",
+      "order": 100,
+      "sensitive": false
     }
   ]
 }
