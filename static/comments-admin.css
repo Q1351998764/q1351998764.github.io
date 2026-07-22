@@ -1,0 +1,143 @@
+:root {
+    --moderation-radius: 6px;
+}
+
+.moderation-shell {
+    max-width: 880px;
+}
+
+.moderation-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px 0 18px;
+}
+
+.moderation-header h1 {
+    margin: 4px 0 0;
+}
+
+.moderation-header nav,
+.moderation-toolbar,
+.moderation-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.moderation-header button,
+.moderation-toolbar button,
+.moderation-actions button,
+#load-more-btn {
+    width: auto;
+    margin: 0;
+}
+
+.moderation-header button,
+.moderation-toolbar button,
+.moderation-actions button {
+    padding: 7px 14px;
+}
+
+.moderation-section {
+    padding: 24px 0;
+    border-top: 1px solid var(--muted-border-color);
+}
+
+.inline-auth {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.inline-auth button {
+    width: auto;
+}
+
+.remember-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.remember-control input {
+    margin: 0;
+}
+
+.moderation-toolbar {
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.moderation-toolbar label {
+    min-width: 180px;
+    margin: 0;
+}
+
+.moderation-item {
+    padding: 18px;
+    margin-bottom: 12px;
+    border-radius: var(--moderation-radius);
+}
+
+.moderation-item header,
+.moderation-item footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.moderation-item header div {
+    display: grid;
+    gap: 2px;
+}
+
+.moderation-item time,
+.comment-state,
+#moderation-status,
+#auth-status {
+    color: var(--muted-color);
+    font-size: 14px;
+}
+
+.comment-body {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+#load-more-btn {
+    display: block;
+    margin: 20px auto;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 620px) {
+    .moderation-header,
+    .moderation-item header,
+    .moderation-item footer,
+    .moderation-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .moderation-header nav,
+    .moderation-actions {
+        justify-content: space-between;
+    }
+
+    .inline-auth {
+        grid-template-columns: 1fr;
+    }
+
+    .inline-auth button,
+    .moderation-actions button {
+        width: 100%;
+    }
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'self' https://memebox.137-131-36-153.sslip.io; img-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <link rel="icon" href="/static/favicon.ico">
+    <title>MemeBox | 评论审核</title>
+    <link rel="stylesheet" href="/static/pico.min.css">
+    <link rel="stylesheet" href="/static/comments-admin.css?v=1">
+</head>
+
+<body data-api-root="https://memebox.137-131-36-153.sslip.io">
+    <main class="container moderation-shell">
+        <header class="moderation-header">
+            <div>
+                <a href="/">MemeBox</a>
+                <h1>评论审核</h1>
+            </div>
+            <nav aria-label="管理导航">
+                <a href="/manage/">内容管理</a>
+                <button id="disconnect-btn" class="secondary outline" type="button" hidden>退出</button>
+            </nav>
+        </header>
+
+        <section id="auth-panel" class="moderation-section">
+            <form id="auth-form">
+                <label for="admin-token">管理员令牌</label>
+                <div class="inline-auth">
+                    <input id="admin-token" type="password" autocomplete="current-password" required>
+                    <button type="submit">连接</button>
+                </div>
+                <label class="remember-control">
+                    <input id="remember-token" type="checkbox" checked>
+                    当前标签页内记住令牌
+                </label>
+                <p id="auth-status" role="status"></p>
+            </form>
+        </section>
+
+        <section id="moderation-panel" class="moderation-section" hidden>
+            <div class="moderation-toolbar">
+                <label for="status-filter">
+                    状态
+                    <select id="status-filter">
+                        <option value="pending">待审核</option>
+                        <option value="approved">已通过</option>
+                        <option value="rejected">已拒绝</option>
+                        <option value="all">全部</option>
+                    </select>
+                </label>
+                <button id="refresh-btn" class="secondary outline" type="button">刷新</button>
+            </div>
+            <p id="moderation-status" role="status"></p>
+            <div id="comment-queue"></div>
+            <button id="load-more-btn" class="secondary outline" type="button" hidden>加载更多</button>
+        </section>
+    </main>
+
+    <template id="moderation-item">
+        <article class="moderation-item">
+            <header>
+                <div>
+                    <strong class="comment-author"></strong>
+                    <time></time>
+                </div>
+                <a class="entry-link" target="_blank" rel="noopener noreferrer">查看图片</a>
+            </header>
+            <p class="comment-body"></p>
+            <footer>
+                <span class="comment-state"></span>
+                <div class="moderation-actions">
+                    <button class="approve-btn" type="button">通过</button>
+                    <button class="reject-btn secondary outline" type="button">拒绝</button>
+                    <button class="delete-btn contrast outline" type="button">删除</button>
+                </div>
+            </footer>
+        </article>
+    </template>
+
+    <script src="/static/scripts/comments-admin.js?v=1" type="module"></script>
+</body>
+
+</html>

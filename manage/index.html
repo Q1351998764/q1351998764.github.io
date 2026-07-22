@@ -12,7 +12,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>MemeBox | 内容管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/manage.css?v=5">
+    <link rel="stylesheet" href="/static/manage.css?v=6">
 </head>
 
 <body data-owner="Q1351998764" data-repo="q1351998764.github.io" data-branch="main">
@@ -22,9 +22,12 @@
                 <a href="/">MemeBox</a>
                 <h1>内容管理</h1>
             </div>
-            <div id="session-panel" hidden>
-                <span id="github-user"></span>
-                <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
+            <div class="manage-nav">
+                <a href="/comments-admin/">评论审核</a>
+                <div id="session-panel" hidden>
+                    <span id="github-user"></span>
+                    <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
+                </div>
             </div>
         </header>
 

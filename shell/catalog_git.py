@@ -98,3 +98,27 @@ def load_upload_times(
         for path, blob in current_blobs.items()
         if blob in upload_times_by_blob
     }
+
+
+def load_current_blobs(repo_root: Path, content_root: str) -> dict[str, str]:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-c",
+                "core.quotepath=false",
+                "ls-tree",
+                "-r",
+                "--full-tree",
+                "HEAD",
+                content_root,
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            check=False,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except OSError:
+        return {}
+    return parse_current_blobs(result.stdout) if result.returncode == 0 else {}

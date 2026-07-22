@@ -1,0 +1,34 @@
+[Unit]
+Description=MemeBox comment and view API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=memebox
+Group=memebox
+WorkingDirectory=/opt/memebox-api
+EnvironmentFile=/etc/memebox-api.env
+ExecStart=/usr/bin/python3 /opt/memebox-api/app.py
+Restart=on-failure
+RestartSec=5s
+UMask=0027
+StateDirectory=memebox-api
+StateDirectoryMode=0750
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+MemoryMax=192M
+
+[Install]
+WantedBy=multi-user.target

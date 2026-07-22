@@ -14,6 +14,15 @@ const viewElement = document.getElementById('view')
 const viewImages = document.getElementById('view-images')
 const viewSensitiveGate = document.getElementById('view-sensitive-gate')
 const viewDownload = document.getElementById('view-download')
+const apiRoot = document.body.dataset.apiRoot?.replace(/\/$/, '') || ''
+const entryCommunity = document.getElementById('entry-community')
+const entryStats = document.getElementById('entry-stats')
+const communityStatus = document.getElementById('community-status')
+const commentList = document.getElementById('comment-list')
+const commentForm = document.getElementById('comment-form')
+const commentAuthor = document.getElementById('comment-author')
+const commentBody = document.getElementById('comment-body')
+const commentSubmit = document.getElementById('comment-submit')
 
 let categories = []
 let entries = []
@@ -29,6 +38,9 @@ let renderedGalleryColumnCount = galleryColumnCountForViewport()
 let galleryNeedsLayout = false
 let showSensitive = readSensitivePreference()
 let sortOrder = readSortPreference()
+let communityVersion = 0
+let currentCommunityEntry = null
+const viewedEntryUids = new Set()
 
 const galleryIO = new IntersectionObserver((observedEntries) => {
     if (!galleryShell.hidden && observedEntries.some((entry) => entry.isIntersecting)) {
@@ -159,6 +171,7 @@ function normalizeConfig(rawConfig) {
                 const images = entry.images.map(String).filter((path) => imageRegex.test(path))
                 return {
                     id: String(entry.id),
+                    uid: typeof entry.uid === 'string' ? entry.uid : '',
                     title: String(entry.title || entry.id),
                     category: categoryId,
                     sensitive: Boolean(entry.sensitive || categoryMap.get(categoryId).sensitive),
@@ -176,6 +189,7 @@ function normalizeConfig(rawConfig) {
                 const id = filename.replace(/\.[^.]+$/, '')
                 return {
                     id,
+                    uid: '',
                     title: id,
                     category: 'default',
                     sensitive: false,
@@ -413,9 +427,110 @@ function renderViewImage(entry, imagePath, index) {
     return node
 }
 
+function readCommentAuthor() {
+    try {
+        return localStorage.getItem('memebox.commentAuthor') || ''
+    } catch (_) {
+        return ''
+    }
+}
+
+function saveCommentAuthor(value) {
+    try {
+        localStorage.setItem('memebox.commentAuthor', value)
+    } catch (_) {
+        // Remembering the nickname is optional.
+    }
+}
+
+async function communityApi(path, options = {}) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10000)
+    try {
+        const response = await fetch(`${apiRoot}/api/v1${path}`, {
+            method: options.method || 'GET',
+            headers: options.body === undefined ? {} : { 'Content-Type': 'application/json' },
+            body: options.body === undefined ? undefined : JSON.stringify(options.body),
+            referrerPolicy: 'no-referrer',
+            signal: controller.signal,
+        })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(data.error || `请求失败 (${response.status})`)
+        return data
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
+function renderEntryStats(summary) {
+    const views = Number(summary.views || 0)
+    const comments = Number(summary.comments || 0)
+    entryStats.textContent = `浏览 ${views} · 评论 ${comments}`
+}
+
+function renderComments(comments) {
+    commentList.replaceChildren()
+    for (const comment of comments) {
+        const node = document.getElementById('comment-item').content.firstElementChild.cloneNode(true)
+        node.querySelector('strong').textContent = String(comment.author || '')
+        const time = node.querySelector('time')
+        const createdAt = new Date(comment.created_at)
+        time.dateTime = comment.created_at
+        time.textContent = Number.isFinite(createdAt.getTime())
+            ? createdAt.toLocaleString()
+            : ''
+        node.querySelector('p').textContent = String(comment.body || '')
+        commentList.append(node)
+    }
+}
+
+function hideCommunity() {
+    communityVersion += 1
+    currentCommunityEntry = null
+    entryCommunity.hidden = true
+}
+
+async function loadCommunity(entry) {
+    if (!apiRoot || !entry.uid) {
+        hideCommunity()
+        return
+    }
+    const version = ++communityVersion
+    currentCommunityEntry = entry
+    entryCommunity.hidden = false
+    entryStats.textContent = ''
+    communityStatus.textContent = '正在加载评论...'
+    commentList.replaceChildren()
+
+    const entryPath = `/entries/${encodeURIComponent(entry.uid)}`
+    const summaryRequest = viewedEntryUids.has(entry.uid)
+        ? communityApi(entryPath)
+        : communityApi(`${entryPath}/view`, { method: 'POST' })
+    viewedEntryUids.add(entry.uid)
+
+    try {
+        const [summary, commentData] = await Promise.all([
+            summaryRequest,
+            communityApi(`${entryPath}/comments?limit=30`),
+        ])
+        if (version !== communityVersion) return
+        renderEntryStats(summary)
+        renderComments(Array.isArray(commentData.comments) ? commentData.comments : [])
+        communityStatus.textContent = commentList.children.length === 0
+            ? '还没有已发布的评论'
+            : ''
+    } catch (error) {
+        if (version !== communityVersion) return
+        communityStatus.textContent = error.name === 'AbortError'
+            ? '评论服务响应超时'
+            : '评论服务暂时不可用'
+    }
+}
+
 function renderView() {
     const entry = currentEntry()
     if (!entry) {
+        hideCommunity()
         showGallery()
         if (galleryNeedsLayout) renderGallery()
         restoreGalleryPosition()
@@ -439,6 +554,9 @@ function renderView() {
             viewImages.append(renderViewImage(entry, imagePath, index))
         )
         if (entry.images.length === 1) viewDownload.href = assetUrl(entry.images[0])
+        loadCommunity(entry)
+    } else {
+        hideCommunity()
     }
 
     window.scrollTo({ top: viewElement.offsetTop, behavior: 'smooth' })
@@ -473,6 +591,36 @@ function init() {
     document.getElementById('reveal-sensitive').addEventListener('click', () =>
         setSensitiveVisibility(true)
     )
+    commentAuthor.value = readCommentAuthor()
+    commentForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const entry = currentCommunityEntry
+        if (!entry?.uid) return
+        const author = commentAuthor.value.trim()
+        const body = commentBody.value.trim()
+        if (!author || !body) return
+        commentSubmit.disabled = true
+        communityStatus.textContent = '正在提交...'
+        try {
+            await communityApi(`/entries/${encodeURIComponent(entry.uid)}/comments`, {
+                method: 'POST',
+                body: {
+                    author,
+                    body,
+                    website: document.getElementById('comment-website').value,
+                },
+            })
+            saveCommentAuthor(author)
+            commentBody.value = ''
+            communityStatus.textContent = '评论已提交，审核后显示'
+        } catch (error) {
+            communityStatus.textContent = error.name === 'AbortError'
+                ? '提交超时，请稍后重试'
+                : error.message
+        } finally {
+            commentSubmit.disabled = false
+        }
+    })
     document.getElementById('refresh-btn').addEventListener('click', () => {
         const candidates = filteredEntries()
         if (candidates.length > 0) location.hash = `#${encodeURIComponent(randomItem(candidates).id)}`

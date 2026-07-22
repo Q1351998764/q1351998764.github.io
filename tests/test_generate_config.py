@@ -87,7 +87,7 @@ class GenerateConfigTests(unittest.TestCase):
             }
             catalog = generate_config.build_catalog(meme_root, category_file, uploads)
 
-            self.assertEqual(catalog["version"], 3)
+            self.assertEqual(catalog["version"], 4)
             self.assertEqual([category["id"] for category in catalog["categories"]], ["default", "reaction"])
             entries = {entry["id"]: entry for entry in catalog["entries"]}
             self.assertEqual(entries["1"]["images"], ["meme/1.jpg"])
@@ -102,6 +102,51 @@ class GenerateConfigTests(unittest.TestCase):
                 uploads["meme/reaction/连续梗/10.jpg"],
             )
             self.assertEqual(catalog["uploads"], uploads)
+            self.assertTrue(entries["1"]["uid"])
+
+    def test_stable_ids_survive_moves_and_group_renames(self):
+        with tempfile.TemporaryDirectory() as directory:
+            meme_root = Path(directory) / "meme"
+            group = meme_root / "reaction" / "before"
+            group.mkdir(parents=True)
+            (meme_root / "single.jpg").write_bytes(b"single")
+            (group / "01.jpg").write_bytes(b"one")
+            (group / "02.jpg").write_bytes(b"two")
+
+            first_catalog, registry = generate_config.build_catalog_with_registry(
+                meme_root,
+                meme_root / "categories.json",
+                blob_ids={
+                    "meme/single.jpg": "a" * 40,
+                    "meme/reaction/before/01.jpg": "b" * 40,
+                    "meme/reaction/before/02.jpg": "c" * 40,
+                },
+            )
+            first = {entry["id"]: entry["uid"] for entry in first_catalog["entries"]}
+
+            moved_single = meme_root / "reaction" / "single.jpg"
+            moved_single.parent.mkdir(exist_ok=True)
+            (meme_root / "single.jpg").replace(moved_single)
+            renamed_group = meme_root / "reaction" / "after"
+            group.replace(renamed_group)
+            (renamed_group / "01.jpg").replace(renamed_group / "temp.jpg")
+            (renamed_group / "02.jpg").replace(renamed_group / "01.jpg")
+            (renamed_group / "temp.jpg").replace(renamed_group / "02.jpg")
+
+            second_catalog, _ = generate_config.build_catalog_with_registry(
+                meme_root,
+                meme_root / "categories.json",
+                blob_ids={
+                    "meme/reaction/single.jpg": "a" * 40,
+                    "meme/reaction/after/01.jpg": "c" * 40,
+                    "meme/reaction/after/02.jpg": "b" * 40,
+                },
+                id_registry=registry,
+            )
+            second = {entry["id"]: entry["uid"] for entry in second_catalog["entries"]}
+
+            self.assertEqual(second["reaction/single"], first["single"])
+            self.assertEqual(second["reaction/after"], first["reaction/before"])
 
     def test_unknown_category_is_discovered(self):
         with tempfile.TemporaryDirectory() as directory:

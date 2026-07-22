@@ -24,6 +24,12 @@
     gap: 12px;
 }
 
+.manage-nav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
 #session-panel button {
     width: auto;
     margin: 0;
@@ -510,6 +516,11 @@ textarea {
     .manage-header {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .manage-nav {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .inline-form button,

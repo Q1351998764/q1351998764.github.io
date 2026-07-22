@@ -12,7 +12,7 @@
     <link rel="icon" href="/static/favicon.ico">
     <title>@TITLE@ | 内容管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/manage.css?v=5">
+    <link rel="stylesheet" href="/static/manage.css?v=6">
 </head>
 
 <body data-owner="@GITHUB_OWNER@" data-repo="@GITHUB_REPO@" data-branch="@GITHUB_BRANCH@">
@@ -22,9 +22,12 @@
                 <a href="/">@TITLE@</a>
                 <h1>内容管理</h1>
             </div>
-            <div id="session-panel" hidden>
-                <span id="github-user"></span>
-                <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
+            <div class="manage-nav">
+                <a href="/comments-admin/">评论审核</a>
+                <div id="session-panel" hidden>
+                    <span id="github-user"></span>
+                    <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
+                </div>
             </div>
         </header>
 

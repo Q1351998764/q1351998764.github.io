@@ -10,6 +10,7 @@ FOOTER?=零下的meme图
 GITHUB_OWNER?=Q1351998764
 GITHUB_REPO?=q1351998764.github.io
 GITHUB_BRANCH?=main
+MEMEBOX_API_ROOT?=https://memebox.137-131-36-153.sslip.io
 
 ifeq (${PAGELANG}, zh)
 T_MEMEPIC?=图片梗
@@ -57,7 +58,7 @@ T_LONG_IMAGE?=Tall image
 
 .PHONY: clean icon copyandstub fixshperm
 
-GENERATED_TEMPLATES = index.html text/index.html manage/index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js static/scripts/text.js
+GENERATED_TEMPLATES = index.html text/index.html manage/index.html comments-admin/index.html shell/genartlist.sh shell/art2text.sh static/scripts/index.js static/scripts/text.js
 
 all: copyandstub ${GENERATED_TEMPLATES} icon fixshperm
 
@@ -90,7 +91,8 @@ ${GENERATED_TEMPLATES}: %: src/%.in
 		| sed 's%@T_LONG_IMAGE@%${T_LONG_IMAGE}%g' \
 		| sed 's%@GITHUB_OWNER@%${GITHUB_OWNER}%g' \
 		| sed 's%@GITHUB_REPO@%${GITHUB_REPO}%g' \
-		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' > $@
+		| sed 's%@GITHUB_BRANCH@%${GITHUB_BRANCH}%g' \
+		| sed 's%@MEMEBOX_API_ROOT@%${MEMEBOX_API_ROOT}%g' > $@
 
 fixshperm: shell/genartlist.sh shell/art2text.sh shell/computed.sh
 	chmod +x $^
@@ -103,13 +105,14 @@ icon:
 	@echo "*** Please put your icons to the right place."
 
 copyandstub:
-	mkdir -pv manage shell static/data/images static/scripts
+	mkdir -pv manage comments-admin shell static/data/images static/scripts
 	touch static/data/.gitkeep static/data/images/.gitkeep
 	cp -rf src/.github .
-	cp -rf src/static/pico.min.css src/static/style.css src/static/text.css src/static/manage.css static/
+	cp -rf src/static/pico.min.css src/static/style.css src/static/text.css src/static/manage.css src/static/comments-admin.css static/
 	cp -rf src/static/vendor static/
 	cp -rf src/static/scripts/manage.js static/scripts/
+	cp -rf src/static/scripts/comments-admin.js static/scripts/
 	cp -rf src/shell/catalog_git.py src/shell/computed.sh src/shell/generate_config.py src/shell/generate_text_config.py src/shell/imgcheck.py shell/
 
 clean:
-	rm -rfv .github manage shell static index.html
+	rm -rfv .github manage comments-admin shell static index.html

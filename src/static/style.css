@@ -183,6 +183,89 @@
     font-size: 14px;
 }
 
+#entry-community {
+    max-width: 760px;
+    padding-top: 28px;
+    margin: 40px auto 0;
+    border-top: 1px solid var(--muted-border-color);
+    text-align: left;
+}
+
+.community-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.community-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+#entry-stats,
+#community-status,
+#comment-list time {
+    color: var(--muted-color);
+    font-size: 14px;
+}
+
+#community-status {
+    min-height: 22px;
+    margin-bottom: 12px;
+}
+
+#comment-list {
+    padding: 0;
+    margin: 0 0 26px;
+    list-style: none;
+}
+
+#comment-list li {
+    padding: 16px 0;
+    border-top: 1px solid var(--muted-border-color);
+}
+
+#comment-list li:last-child {
+    border-bottom: 1px solid var(--muted-border-color);
+}
+
+#comment-list header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 6px;
+}
+
+#comment-list p {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+#comment-form {
+    margin: 0;
+}
+
+#comment-submit {
+    width: auto;
+    min-width: 112px;
+}
+
+.comment-honeypot {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 #gallery {
     display: flex;
     align-items: flex-start;
@@ -302,6 +385,17 @@ footer {
 
     .view-actions {
         justify-content: flex-end;
+    }
+
+    .community-header,
+    #comment-list header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    #comment-submit {
+        width: 100%;
     }
 
     #col2,

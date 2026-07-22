@@ -7,13 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@DESC@">
     <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'self' @MEMEBOX_API_ROOT@; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
     <link rel="icon" href="/static/favicon.ico">
     <title>@TITLE@ | @DESC@</title>
     <link rel="stylesheet" href="/static/pico.min.css">
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 
-<body>
+<body data-api-root="@MEMEBOX_API_ROOT@">
     <main class="container">
         <header class="site-header">
             <h1>@TITLE@</h1>
@@ -80,6 +82,30 @@
                 <button id="reveal-sensitive" type="button">@T_SENSITIVE_HIDDEN@</button>
             </div>
             <div id="view-images"></div>
+
+            <section id="entry-community" hidden>
+                <header class="community-header">
+                    <h3>评论</h3>
+                    <span id="entry-stats"></span>
+                </header>
+                <p id="community-status" role="status"></p>
+                <ol id="comment-list"></ol>
+                <form id="comment-form">
+                    <label for="comment-author">
+                        昵称
+                        <input id="comment-author" name="author" maxlength="30" autocomplete="nickname" required>
+                    </label>
+                    <label for="comment-body">
+                        评论
+                        <textarea id="comment-body" name="body" maxlength="1000" rows="4" required></textarea>
+                    </label>
+                    <label class="comment-honeypot" aria-hidden="true">
+                        网站
+                        <input id="comment-website" name="website" tabindex="-1" autocomplete="off">
+                    </label>
+                    <button id="comment-submit" type="submit">提交评论</button>
+                </form>
+            </section>
         </article>
 
         <section id="gallery-shell">
@@ -121,7 +147,17 @@
         </figure>
     </template>
 
-    <script src="./static/scripts/index.js?v=7" type="module"></script>
+    <template id="comment-item">
+        <li>
+            <header>
+                <strong></strong>
+                <time></time>
+            </header>
+            <p></p>
+        </li>
+    </template>
+
+    <script src="./static/scripts/index.js?v=8" type="module"></script>
 </body>
 
 </html>

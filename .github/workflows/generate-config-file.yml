@@ -32,6 +32,6 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update config file'
-          file_pattern: static/scripts/config.js
+          file_pattern: static/scripts/config.js static/data/meme-entry-ids.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

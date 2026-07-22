@@ -126,6 +126,20 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 浏览器的 `sessionStorage` 中；刷新或在同一标签页重新进入管理页时可自动连接，退出管理
 或关闭该标签页后清除。取消勾选时仍只在页面内存中保存。
 
+### 浏览量与评论
+
+图片详情页通过独立 API 显示浏览量和已审核评论。浏览量按匿名访客每日去重；服务端只保存
+HMAC 哈希，不保存原始 IP。访客评论默认进入待审核状态，可在 `/comments-admin/` 输入服务
+器管理员令牌后通过或拒绝。管理员令牌和 GitHub Token 一样只会在当前标签页的
+`sessionStorage` 中暂存。
+
+每个图片条目都有独立的永久 UUID。`shell/generate_config.py` 会将 UUID 写入
+`static/data/meme-entry-ids.json`，并利用 Git blob 身份在移动分类、修改组名和调整组内顺序
+后继续沿用原 UUID。该映射是公开目录数据，不包含访问令牌或其他密钥。
+
+当前 API 地址由 `MEMEBOX_API_ROOT` 构建变量控制。服务端程序、systemd 沙箱、Caddy 配置和
+备份配置位于 `server/`，详细运维步骤见 `server/README.md`。
+
 项目将 Pico CSS 固定在 `static/pico.min.css`，页面和管理页不依赖第三方脚本或样式服务。
 
 ### 自定义文字
@@ -141,6 +155,7 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 |DESC|网站描述，例如："Joy for Everyone"|
 |TDESC|文字梗的描述|
 |FOOTER|每个页面的脚注|
+|MEMEBOX_API_ROOT|评论和浏览量 API 的 HTTPS 根地址|
 
 比如：
 
