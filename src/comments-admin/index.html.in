@@ -9,7 +9,7 @@
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; connect-src 'self' @MEMEBOX_API_ROOT@; img-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
     <link rel="icon" href="/static/favicon.ico">
-    <title>@TITLE@ | 评论审核</title>
+    <title>@TITLE@ | 评论管理</title>
     <link rel="stylesheet" href="/static/pico.min.css">
     <link rel="stylesheet" href="/static/comments-admin.css?v=1">
 </head>
@@ -19,7 +19,7 @@
         <header class="moderation-header">
             <div>
                 <a href="/">@TITLE@</a>
-                <h1>评论审核</h1>
+                <h1>评论管理</h1>
             </div>
             <nav aria-label="管理导航">
                 <a href="/manage/">内容管理</a>
@@ -44,15 +44,7 @@
 
         <section id="moderation-panel" class="moderation-section" hidden>
             <div class="moderation-toolbar">
-                <label for="status-filter">
-                    状态
-                    <select id="status-filter">
-                        <option value="pending">待审核</option>
-                        <option value="approved">已通过</option>
-                        <option value="rejected">已拒绝</option>
-                        <option value="all">全部</option>
-                    </select>
-                </label>
+                <span>全部评论，按提交时间倒序</span>
                 <button id="refresh-btn" class="secondary outline" type="button">刷新</button>
             </div>
             <p id="moderation-status" role="status"></p>
@@ -74,15 +66,13 @@
             <footer>
                 <span class="comment-state"></span>
                 <div class="moderation-actions">
-                    <button class="approve-btn" type="button">通过</button>
-                    <button class="reject-btn secondary outline" type="button">拒绝</button>
                     <button class="delete-btn contrast outline" type="button">删除</button>
                 </div>
             </footer>
         </article>
     </template>
 
-    <script src="/static/scripts/comments-admin.js?v=1" type="module"></script>
+    <script src="/static/scripts/comments-admin.js?v=2" type="module"></script>
 </body>
 
 </html>

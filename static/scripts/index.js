@@ -612,7 +612,12 @@ function init() {
             })
             saveCommentAuthor(author)
             commentBody.value = ''
-            communityStatus.textContent = '评论已提交，审核后显示'
+            if (currentCommunityEntry?.uid === entry.uid) {
+                await loadCommunity(entry)
+                if (currentCommunityEntry?.uid === entry.uid) {
+                    communityStatus.textContent = '评论已发布'
+                }
+            }
         } catch (error) {
             communityStatus.textContent = error.name === 'AbortError'
                 ? '提交超时，请稍后重试'

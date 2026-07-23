@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small dependency-free API for MemeBox views and moderated comments."""
+"""Small dependency-free API for MemeBox views and comments."""
 
 from __future__ import annotations
 
@@ -150,6 +150,13 @@ class Database:
                     ON comments(visitor_hash, created_at);
                 """
             )
+            connection.execute(
+                """
+                UPDATE comments
+                SET status = 'approved', moderated_at = COALESCE(moderated_at, created_at)
+                WHERE status = 'pending'
+                """
+            )
             cutoff = (date.today() - timedelta(days=45)).isoformat()
             connection.execute("DELETE FROM unique_views WHERE viewed_on < ?", (cutoff,))
 
@@ -249,42 +256,26 @@ class Database:
             cursor = connection.execute(
                 """
                 INSERT INTO comments(entry_id, author, body, status, visitor_hash, created_at)
-                VALUES (?, ?, ?, 'pending', ?, ?)
+                VALUES (?, ?, ?, 'approved', ?, ?)
                 """,
                 (entry_id, author, body, visitor_hash, iso_now()),
             )
         return int(cursor.lastrowid)
 
-    def admin_comments(self, status: str, limit: int, before: int | None) -> list[dict[str, Any]]:
+    def admin_comments(self, limit: int, before: int | None) -> list[dict[str, Any]]:
         query = """
             SELECT id, entry_id, author, body, status, created_at, moderated_at
             FROM comments
         """
-        conditions: list[str] = []
         parameters: list[Any] = []
-        if status != "all":
-            conditions.append("status = ?")
-            parameters.append(status)
         if before is not None:
-            conditions.append("id < ?")
+            query += " WHERE id < ?"
             parameters.append(before)
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY id DESC LIMIT ?"
         parameters.append(limit)
         with self.session() as connection:
             rows = connection.execute(query, parameters).fetchall()
         return [dict(row) for row in rows]
-
-    def moderate_comment(self, comment_id: int, status: str) -> bool:
-        with self.session() as connection:
-            changed = connection.execute(
-                """
-                UPDATE comments SET status = ?, moderated_at = ? WHERE id = ?
-                """,
-                (status, iso_now(), comment_id),
-            ).rowcount
-        return bool(changed)
 
     def delete_comment(self, comment_id: int) -> bool:
         with self.session() as connection:
@@ -459,7 +450,7 @@ class MemeBoxHandler(BaseHTTPRequestHandler):
             return
         self.send_response(HTTPStatus.NO_CONTENT)
         self.send_header("Access-Control-Allow-Origin", self.server.config.allowed_origin)
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
         self.send_header("Access-Control-Max-Age", "86400")
         self.send_header("Vary", "Origin")
@@ -476,14 +467,10 @@ class MemeBoxHandler(BaseHTTPRequestHandler):
             if not self._require_admin():
                 return
             query = parse_qs(parsed.query)
-            status = query.get("status", ["pending"])[0]
-            if status not in {"pending", "approved", "rejected", "all"}:
-                self._error(HTTPStatus.BAD_REQUEST, "审核状态无效")
-                return
             limit = bounded_integer(query.get("limit", ["50"])[0], 50, 1, 100)
             before_value = query.get("before", [""])[0]
             before = int(before_value) if before_value.isdigit() else None
-            comments = self.server.database.admin_comments(status, limit, before)
+            comments = self.server.database.admin_comments(limit, before)
             self._send_json(HTTPStatus.OK, {"comments": comments})
             return
 
@@ -531,7 +518,7 @@ class MemeBoxHandler(BaseHTTPRequestHandler):
         if data is None:
             return
         if str(data.get("website", "")).strip():
-            self._send_json(HTTPStatus.ACCEPTED, {"status": "pending"})
+            self._send_json(HTTPStatus.CREATED, {"status": "published"})
             return
         author = " ".join(str(data.get("author", "")).split())
         body = str(data.get("body", "")).replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -552,29 +539,9 @@ class MemeBoxHandler(BaseHTTPRequestHandler):
             return
         comment_id = self.server.database.add_comment(entry_id, author, body, visitor_hash)
         self._send_json(
-            HTTPStatus.ACCEPTED,
-            {"id": comment_id, "status": "pending"},
+            HTTPStatus.CREATED,
+            {"id": comment_id, "status": "published"},
         )
-
-    def do_PATCH(self) -> None:
-        if not self._require_origin() or not self._require_admin():
-            return
-        parsed = urlsplit(self.path)
-        match = ADMIN_COMMENT_ROUTE.fullmatch(parsed.path)
-        if not match or match.group(1) is None:
-            self._error(HTTPStatus.NOT_FOUND, "接口不存在")
-            return
-        data = self._read_json()
-        if data is None:
-            return
-        status = str(data.get("status", ""))
-        if status not in {"approved", "rejected"}:
-            self._error(HTTPStatus.BAD_REQUEST, "审核状态无效")
-            return
-        if not self.server.database.moderate_comment(int(match.group(1)), status):
-            self._error(HTTPStatus.NOT_FOUND, "评论不存在")
-            return
-        self._send_json(HTTPStatus.OK, {"status": status})
 
     def do_DELETE(self) -> None:
         if not self._require_origin() or not self._require_admin():

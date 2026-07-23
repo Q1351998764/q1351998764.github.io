@@ -1,5 +1,5 @@
 [Unit]
-Description=MemeBox comment and view API
+Description=MemeBox comments and view API
 After=network-online.target
 Wants=network-online.target
 

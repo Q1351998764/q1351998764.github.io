@@ -66,34 +66,27 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(first["views"], 1)
         self.assertEqual(second["views"], 1)
 
-    def test_comment_requires_approval_before_publication(self):
+    def test_comment_is_published_immediately_and_admin_can_delete_it(self):
         comment_path = f"/api/v1/entries/{self.entry_id}/comments"
-        status, pending = self.request(
+        status, published = self.request(
             "POST",
             comment_path,
             {"author": "测试用户", "body": "这是一条评论", "website": ""},
         )
-        self.assertEqual(status, 202)
-        self.assertEqual(pending["status"], "pending")
+        self.assertEqual(status, 201)
+        self.assertEqual(published["status"], "published")
 
-        _, public_before = self.request("GET", comment_path)
-        self.assertEqual(public_before["comments"], [])
+        _, public_comments = self.request("GET", comment_path)
+        self.assertEqual(public_comments["comments"][0]["body"], "这是一条评论")
 
-        _, moderation_queue = self.request(
-            "GET", "/api/v1/admin/comments?status=pending", admin=True
+        unauthorized_status, _ = self.request("GET", "/api/v1/admin/comments")
+        self.assertEqual(unauthorized_status, 401)
+
+        admin_status, admin_comments = self.request(
+            "GET", "/api/v1/admin/comments", admin=True
         )
-        comment_id = moderation_queue["comments"][0]["id"]
-        approve_status, approved = self.request(
-            "PATCH",
-            f"/api/v1/admin/comments/{comment_id}",
-            {"status": "approved"},
-            admin=True,
-        )
-        self.assertEqual(approve_status, 200)
-        self.assertEqual(approved["status"], "approved")
-
-        _, public_after = self.request("GET", comment_path)
-        self.assertEqual(public_after["comments"][0]["body"], "这是一条评论")
+        self.assertEqual(admin_status, 200)
+        comment_id = admin_comments["comments"][0]["id"]
 
         delete_status, deleted = self.request(
             "DELETE", f"/api/v1/admin/comments/{comment_id}", admin=True
@@ -109,6 +102,29 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(status, 404)
         self.assertIn("error", payload)
+
+    def test_pending_comments_are_published_but_rejected_comments_stay_hidden(self):
+        with self.server.database.session() as connection:
+            connection.executemany(
+                """
+                INSERT INTO comments(
+                    entry_id, author, body, status, visitor_hash, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (self.entry_id, "甲", "旧待审核评论", "pending", "visitor-a", "2026-07-23T00:00:00Z"),
+                    (self.entry_id, "乙", "旧拒绝评论", "rejected", "visitor-b", "2026-07-23T00:01:00Z"),
+                ],
+            )
+
+        self.server.database.initialize()
+        public_comments = self.server.database.public_comments(self.entry_id, 30, None)
+        self.assertEqual([comment["body"] for comment in public_comments], ["旧待审核评论"])
+
+        admin_comments = self.server.database.admin_comments(30, None)
+        statuses = {comment["body"]: comment["status"] for comment in admin_comments}
+        self.assertEqual(statuses["旧待审核评论"], "approved")
+        self.assertEqual(statuses["旧拒绝评论"], "rejected")
 
 
 if __name__ == "__main__":

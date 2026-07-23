@@ -128,9 +128,9 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 
 ### 浏览量与评论
 
-图片详情页通过独立 API 显示浏览量和已审核评论。浏览量按匿名访客每日去重；服务端只保存
-HMAC 哈希，不保存原始 IP。访客评论默认进入待审核状态，可在 `/comments-admin/` 输入服务
-器管理员令牌后通过或拒绝。管理员令牌和 GitHub Token 一样只会在当前标签页的
+图片详情页通过独立 API 显示浏览量和公开评论。浏览量按匿名访客每日去重；服务端只保存
+HMAC 哈希，不保存原始 IP。访客评论提交后直接公开，可在 `/comments-admin/` 输入服务器
+管理员令牌后查看和删除。管理员令牌和 GitHub Token 一样只会在当前标签页的
 `sessionStorage` 中暂存。
 
 每个图片条目都有独立的永久 UUID。`shell/generate_config.py` 会将 UUID 写入

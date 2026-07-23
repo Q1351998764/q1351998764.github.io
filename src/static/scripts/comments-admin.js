@@ -6,7 +6,6 @@ const rememberToken = document.getElementById('remember-token')
 const authStatus = document.getElementById('auth-status')
 const disconnectButton = document.getElementById('disconnect-btn')
 const moderationPanel = document.getElementById('moderation-panel')
-const statusFilter = document.getElementById('status-filter')
 const refreshButton = document.getElementById('refresh-btn')
 const moderationStatus = document.getElementById('moderation-status')
 const commentQueue = document.getElementById('comment-queue')
@@ -83,33 +82,21 @@ function entryUrl(entryId) {
     return pathId ? `/#${encodeURIComponent(pathId)}` : '/'
 }
 
-function stateLabel(status) {
-    return {
-        pending: '待审核',
-        approved: '已通过',
-        rejected: '已拒绝',
-    }[status] || status
-}
-
 function renderComment(comment) {
     const node = document.getElementById('moderation-item').content.firstElementChild.cloneNode(true)
     node.dataset.commentId = comment.id
     node.querySelector('.comment-author').textContent = String(comment.author || '')
     node.querySelector('.comment-body').textContent = String(comment.body || '')
-    node.querySelector('.comment-state').textContent = stateLabel(comment.status)
+    node.querySelector('.comment-state').textContent = comment.status === 'rejected'
+        ? '历史隐藏评论'
+        : ''
     const time = node.querySelector('time')
     const createdAt = new Date(comment.created_at)
     time.dateTime = comment.created_at
     time.textContent = Number.isFinite(createdAt.getTime()) ? createdAt.toLocaleString() : ''
     node.querySelector('.entry-link').href = entryUrl(String(comment.entry_id || ''))
 
-    const approveButton = node.querySelector('.approve-btn')
-    const rejectButton = node.querySelector('.reject-btn')
     const deleteButton = node.querySelector('.delete-btn')
-    approveButton.hidden = comment.status === 'approved'
-    rejectButton.hidden = comment.status === 'rejected'
-    approveButton.addEventListener('click', () => moderateComment(comment.id, 'approved', node))
-    rejectButton.addEventListener('click', () => moderateComment(comment.id, 'rejected', node))
     deleteButton.addEventListener('click', () => deleteComment(comment.id, node))
     return node
 }
@@ -121,7 +108,7 @@ async function loadComments({ append = false } = {}) {
     loadMoreButton.disabled = true
     moderationStatus.textContent = '正在加载...'
     try {
-        const query = new URLSearchParams({ status: statusFilter.value, limit: '50' })
+        const query = new URLSearchParams({ limit: '50' })
         if (append && nextBefore) query.set('before', String(nextBefore))
         const data = await apiRequest(`/admin/comments?${query}`)
         const comments = Array.isArray(data.comments) ? data.comments : []
@@ -136,30 +123,6 @@ async function loadComments({ append = false } = {}) {
         loading = false
         refreshButton.disabled = false
         loadMoreButton.disabled = false
-    }
-}
-
-async function moderateComment(commentId, status, node) {
-    const buttons = node.querySelectorAll('button')
-    buttons.forEach((button) => { button.disabled = true })
-    moderationStatus.textContent = '正在保存...'
-    try {
-        await apiRequest(`/admin/comments/${commentId}`, {
-            method: 'PATCH',
-            body: { status },
-        })
-        if (statusFilter.value === 'all') {
-            node.querySelector('.comment-state').textContent = stateLabel(status)
-            node.querySelector('.approve-btn').hidden = status === 'approved'
-            node.querySelector('.reject-btn').hidden = status === 'rejected'
-        } else {
-            node.remove()
-        }
-        moderationStatus.textContent = commentQueue.children.length === 0 ? '没有评论' : '已保存'
-    } catch (error) {
-        moderationStatus.textContent = error.name === 'AbortError' ? '请求超时' : error.message
-    } finally {
-        buttons.forEach((button) => { button.disabled = false })
     }
 }
 
@@ -183,7 +146,7 @@ async function connect(value) {
     adminToken = value.trim()
     if (!adminToken) return
     authStatus.textContent = '正在连接...'
-    await apiRequest('/admin/comments?status=pending&limit=1')
+    await apiRequest('/admin/comments?limit=1')
     persistToken(adminToken)
     tokenInput.value = ''
     authPanel.hidden = true
@@ -220,7 +183,6 @@ authForm.addEventListener('submit', async (event) => {
 
 disconnectButton.addEventListener('click', disconnect)
 refreshButton.addEventListener('click', () => loadComments())
-statusFilter.addEventListener('change', () => loadComments())
 loadMoreButton.addEventListener('click', () => loadComments({ append: true }))
 
 await loadEntryPaths()

@@ -23,7 +23,7 @@
                 <h1>内容管理</h1>
             </div>
             <div class="manage-nav">
-                <a href="/comments-admin/">评论审核</a>
+                <a href="/comments-admin/">评论管理</a>
                 <div id="session-panel" hidden>
                     <span id="github-user"></span>
                     <button id="disconnect-btn" class="secondary outline" type="button">退出</button>
