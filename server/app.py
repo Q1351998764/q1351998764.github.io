@@ -29,6 +29,9 @@ ENTRY_ROUTE = re.compile(r"^/api/v1/entries/([0-9a-f-]{36})(?:/(view|comments))?
 ADMIN_COMMENT_ROUTE = re.compile(r"^/api/v1/admin/comments(?:/(\d+))?$")
 MAX_BODY_BYTES = 8 * 1024
 MAX_CATALOG_BYTES = 4 * 1024 * 1024
+COMMENT_BURST_WINDOW_MINUTES = 1
+COMMENT_BURST_LIMIT = 3
+COMMENT_DAILY_LIMIT = 100
 
 
 def utc_now() -> datetime:
@@ -232,7 +235,9 @@ class Database:
         return [dict(row) for row in rows]
 
     def comment_rate(self, visitor_hash: str) -> tuple[int, int]:
-        ten_minutes_ago = (utc_now() - timedelta(minutes=10)).isoformat(
+        burst_window_start = (
+            utc_now() - timedelta(minutes=COMMENT_BURST_WINDOW_MINUTES)
+        ).isoformat(
             timespec="seconds"
         ).replace("+00:00", "Z")
         today = datetime.combine(date.today(), datetime.min.time(), UTC).isoformat(
@@ -247,7 +252,7 @@ class Database:
                 FROM comments
                 WHERE visitor_hash = ?
                 """,
-                (ten_minutes_ago, today, visitor_hash),
+                (burst_window_start, today, visitor_hash),
             ).fetchone()
         return int(row["recent_count"] or 0), int(row["daily_count"] or 0)
 
@@ -534,7 +539,7 @@ class MemeBoxHandler(BaseHTTPRequestHandler):
             return
         visitor_hash = self._visitor_hash()
         recent_count, daily_count = self.server.database.comment_rate(visitor_hash)
-        if recent_count >= 3 or daily_count >= 10:
+        if recent_count >= COMMENT_BURST_LIMIT or daily_count >= COMMENT_DAILY_LIMIT:
             self._error(HTTPStatus.TOO_MANY_REQUESTS, "评论过于频繁，请稍后再试")
             return
         comment_id = self.server.database.add_comment(entry_id, author, body, visitor_hash)

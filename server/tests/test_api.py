@@ -6,9 +6,10 @@ import tempfile
 import threading
 import unittest
 import uuid
+from datetime import timedelta
 from pathlib import Path
 
-from server.app import Config, MemeBoxServer
+from server.app import Config, MemeBoxServer, utc_now
 
 
 class ApiTests(unittest.TestCase):
@@ -102,6 +103,61 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(status, 404)
         self.assertIn("error", payload)
+
+    def test_comment_rate_limits_three_submissions_per_minute(self):
+        comment_path = f"/api/v1/entries/{self.entry_id}/comments"
+        for index in range(3):
+            status, _ = self.request(
+                "POST",
+                comment_path,
+                {"author": "测试用户", "body": f"一分钟内评论 {index}", "website": ""},
+            )
+            self.assertEqual(status, 201)
+
+        blocked_status, blocked = self.request(
+            "POST",
+            comment_path,
+            {"author": "测试用户", "body": "一分钟内第 4 条", "website": ""},
+        )
+        self.assertEqual(blocked_status, 429)
+        self.assertIn("error", blocked)
+
+    def test_comment_rate_limits_one_hundred_submissions_per_day(self):
+        comment_path = f"/api/v1/entries/{self.entry_id}/comments"
+        first_status, _ = self.request(
+            "POST",
+            comment_path,
+            {"author": "测试用户", "body": "取得访客标识", "website": ""},
+        )
+        self.assertEqual(first_status, 201)
+
+        old_timestamp = (utc_now() - timedelta(minutes=2)).isoformat(
+            timespec="seconds"
+        ).replace("+00:00", "Z")
+        with self.server.database.session() as connection:
+            visitor_hash = connection.execute(
+                "SELECT visitor_hash FROM comments LIMIT 1"
+            ).fetchone()["visitor_hash"]
+            connection.execute("DELETE FROM comments")
+            connection.executemany(
+                """
+                INSERT INTO comments(
+                    entry_id, author, body, status, visitor_hash, created_at
+                ) VALUES (?, '测试用户', ?, 'approved', ?, ?)
+                """,
+                [
+                    (self.entry_id, f"当天评论 {index}", visitor_hash, old_timestamp)
+                    for index in range(100)
+                ],
+            )
+
+        blocked_status, blocked = self.request(
+            "POST",
+            comment_path,
+            {"author": "测试用户", "body": "当天第 101 条", "website": ""},
+        )
+        self.assertEqual(blocked_status, 429)
+        self.assertIn("error", blocked)
 
     def test_pending_comments_are_published_but_rejected_comments_stay_hidden(self):
         with self.server.database.session() as connection:
