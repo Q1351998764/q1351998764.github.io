@@ -451,6 +451,7 @@ async function communityApi(path, options = {}) {
             method: options.method || 'GET',
             headers: options.body === undefined ? {} : { 'Content-Type': 'application/json' },
             body: options.body === undefined ? undefined : JSON.stringify(options.body),
+            cache: 'no-store',
             referrerPolicy: 'no-referrer',
             signal: controller.signal,
         })
@@ -614,9 +615,6 @@ function init() {
             commentBody.value = ''
             if (currentCommunityEntry?.uid === entry.uid) {
                 await loadCommunity(entry)
-                if (currentCommunityEntry?.uid === entry.uid) {
-                    communityStatus.textContent = '评论已发布'
-                }
             }
         } catch (error) {
             communityStatus.textContent = error.name === 'AbortError'

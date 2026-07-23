@@ -221,14 +221,21 @@ class Database:
     def public_comments(self, entry_id: str, limit: int, before: int | None) -> list[dict[str, Any]]:
         query = """
             SELECT id, author, body, created_at
-            FROM comments
-            WHERE entry_id = ? AND status = 'approved'
+            FROM (
+                SELECT id, author, body, created_at
+                FROM comments
+                WHERE entry_id = ? AND status = 'approved'
         """
         parameters: list[Any] = [entry_id]
         if before is not None:
             query += " AND id < ?"
             parameters.append(before)
-        query += " ORDER BY id DESC LIMIT ?"
+        query += """
+                ORDER BY id DESC
+                LIMIT ?
+            ) AS recent_comments
+            ORDER BY id ASC
+        """
         parameters.append(limit)
         with self.session() as connection:
             rows = connection.execute(query, parameters).fetchall()

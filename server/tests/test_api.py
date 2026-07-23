@@ -114,6 +114,12 @@ class ApiTests(unittest.TestCase):
             )
             self.assertEqual(status, 201)
 
+        _, public_comments = self.request("GET", comment_path)
+        self.assertEqual(
+            [comment["body"] for comment in public_comments["comments"]],
+            ["一分钟内评论 0", "一分钟内评论 1", "一分钟内评论 2"],
+        )
+
         blocked_status, blocked = self.request(
             "POST",
             comment_path,
