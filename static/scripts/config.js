@@ -5351,6 +5351,23 @@ export default {
       "uid": "47b9f026-0e11-49cc-b69e-00f056046065"
     },
     {
+      "id": "default/民用尖端科技合集",
+      "title": "民用尖端科技合集",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/民用尖端科技合集/01.jpg",
+        "meme/default/民用尖端科技合集/02.jpg",
+        "meme/default/民用尖端科技合集/03.jpg",
+        "meme/default/民用尖端科技合集/04.jpg",
+        "meme/default/民用尖端科技合集/05.jpg",
+        "meme/default/民用尖端科技合集/06.jpg",
+        "meme/default/民用尖端科技合集/07.jpg"
+      ],
+      "uploadedAt": "2026-07-27T13:50:25+08:00",
+      "uid": "07bd32d4-3bbe-451e-ae52-e380b4032294"
+    },
+    {
       "id": "default/炒股",
       "title": "炒股",
       "category": "default",
@@ -6673,6 +6690,13 @@ export default {
     "meme/default/散光/01.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/02.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/03.png": "2026-07-19T10:15:07+08:00",
+    "meme/default/民用尖端科技合集/01.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/02.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/03.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/04.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/05.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/06.jpg": "2026-07-27T13:50:25+08:00",
+    "meme/default/民用尖端科技合集/07.jpg": "2026-07-27T13:50:25+08:00",
     "meme/default/炒股/01.jpg": "2026-07-20T14:06:38+08:00",
     "meme/default/炒股/02.jpg": "2026-07-20T14:06:38+08:00",
     "meme/dyxh/20260722-012825-01-2c0cd766ac4e04fd1c41f84684c21132.jpeg": "2026-07-22T09:28:36+08:00",

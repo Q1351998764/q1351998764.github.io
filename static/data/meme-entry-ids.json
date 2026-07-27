@@ -3870,6 +3870,20 @@
       "active": true
     },
     {
+      "uid": "07bd32d4-3bbe-451e-ae52-e380b4032294",
+      "key": "default/民用尖端科技合集",
+      "blobs": [
+        "04e3ce0d0f8b13ec1010a1e82c6c271d9339f50a",
+        "06fcb95c703a05e1563ff060b2931f022332d61e",
+        "1007f22a6e87cb141bb77e5f62132d5b1572f96d",
+        "1dbe480375e13affebdb5b5acfc9a6a74e238b28",
+        "4f74d43aea1952eced2cd4280dd8062bafc01883",
+        "55b1272682c1ffce35d202cdba63b0d7f9841f0e",
+        "d0b0a17e1bf7a03b08abfc08afaf38ed44f1da4b"
+      ],
+      "active": true
+    },
+    {
       "uid": "ae53e356-9fbd-436a-bb5e-a795c333dac7",
       "key": "default/炒股",
       "blobs": [
