@@ -5326,6 +5326,18 @@ export default {
       "uid": "04fde73c-3f82-40e3-96c9-18b64a4519a4"
     },
     {
+      "id": "default/异地恋",
+      "title": "异地恋",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/异地恋/01.jpg",
+        "meme/default/异地恋/02.jpg"
+      ],
+      "uploadedAt": "2026-07-27T13:49:30+08:00",
+      "uid": "96aadd3b-3664-4523-b537-6b8627be50d4"
+    },
+    {
       "id": "default/散光",
       "title": "散光",
       "category": "default",
@@ -6656,6 +6668,8 @@ export default {
     "meme/20260727-054223-26-微信图片_20260724071013_9779_1.jpg": "2026-07-27T13:42:31+08:00",
     "meme/default/亚空间/01.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/亚空间/02.jpg": "2026-07-19T10:01:27+08:00",
+    "meme/default/异地恋/01.jpg": "2026-07-27T13:49:30+08:00",
+    "meme/default/异地恋/02.jpg": "2026-07-27T13:49:30+08:00",
     "meme/default/散光/01.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/02.png": "2026-07-19T10:15:07+08:00",
     "meme/default/散光/03.png": "2026-07-19T10:15:07+08:00",
