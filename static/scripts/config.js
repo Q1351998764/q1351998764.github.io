@@ -5732,6 +5732,17 @@ export default {
       "uid": "0afded10-d436-4fed-b85c-1facadc0ded2"
     },
     {
+      "id": "dyxh/20260727-055414-01-e89bf82f4aa433637ff06ee42d3d561d",
+      "title": "20260727-055414-01-e89bf82f4aa433637ff06ee42d3d561d",
+      "category": "dyxh",
+      "sensitive": false,
+      "images": [
+        "meme/dyxh/20260727-055414-01-e89bf82f4aa433637ff06ee42d3d561d.jpeg"
+      ],
+      "uploadedAt": "2026-07-27T13:54:15+08:00",
+      "uid": "31097281-bf50-442e-8907-e3093f6e507b"
+    },
+    {
       "id": "dyxh/屈原",
       "title": "屈原",
       "category": "dyxh",
@@ -6742,6 +6753,7 @@ export default {
     "meme/dyxh/20260722-012825-30-f406a3129b84d12cf4d9674d77f329b1.png": "2026-07-22T09:28:36+08:00",
     "meme/dyxh/20260722-012825-31-fa2ab869e4b904a58c8283d20a86b5b0.png": "2026-07-22T09:28:36+08:00",
     "meme/dyxh/20260722-012825-32-photo_2026-07-20_22-44-37.jpg": "2026-07-22T09:28:36+08:00",
+    "meme/dyxh/20260727-055414-01-e89bf82f4aa433637ff06ee42d3d561d.jpeg": "2026-07-27T13:54:15+08:00",
     "meme/dyxh/屈原/01.png": "2026-07-22T09:12:33+08:00",
     "meme/dyxh/屈原/02.png": "2026-07-22T09:12:33+08:00",
     "meme/dyxh/辐射/01.jpg": "2026-07-22T09:23:16+08:00",
