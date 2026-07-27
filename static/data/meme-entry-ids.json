@@ -4447,6 +4447,36 @@
       "active": true
     },
     {
+      "uid": "b0a888e4-f380-4aab-9345-04f6f6c704d3",
+      "key": "nsfw/各个大学",
+      "blobs": [
+        "01215c19b14cbd188e65dfaaad1d7cbbe7de5334",
+        "018d6ab207808c693e10d56445a4801943d84713",
+        "059a27984c05fa3b3b54edbf6977cb624867f22b",
+        "1a29525b970c3ec0ba0c06ac91e1bb07ce09da8b",
+        "217c1ad5e2b3368a72539e2a358ae40a6a053947",
+        "2487d13ac4e7149885df716e8f3c910cf4205cd3",
+        "257111336236083ce41c6de8ab865b9deaa5ec5c",
+        "378661b0b09ee7d3df8d39775695a2c298157071",
+        "3d3870ba73415b524775360d21b648a974d7a1f0",
+        "460592f897a22bb0326999ce116ebaf1c08c3af4",
+        "562bd7b660fd17ea8b60ea039dcc14abc0d5b6fe",
+        "5b544069fc3fdcf6d86b3f70937b695d50da4c91",
+        "643d46533ddd8375b78ea1e52010cbdb6c434ff5",
+        "6cdcf9c5ffc8c13cb8e45ebd4ee3a8e91a22c9db",
+        "7f6365c31e145b4ca3e97a02317fd9beab7329bc",
+        "9138c94c1b1a0e634340ec7fe128a960a30a74f1",
+        "b9d04ca18e202c39ea03a6003624a4b4a218bbdd",
+        "d7f38aef9066a15d17afbe0de04694d76ea60739",
+        "decb777c76b2d191ab48172d1e51a5397d2ebaf4",
+        "e15e5e8619ca864e3f4733ff0f0fd3110030e646",
+        "e2011e4e38ae07864e23a478940c41be4a8f6a40",
+        "ebdac615afc53fc4ac90bc8ac37487a70911ea7d",
+        "f8d11468f009f5e5b5a888d23362c64f4e487f91"
+      ],
+      "active": true
+    },
+    {
       "uid": "7f109bcc-80cd-452a-bc68-0c67d2df5bff",
       "key": "nsfw/雨姐",
       "blobs": [
