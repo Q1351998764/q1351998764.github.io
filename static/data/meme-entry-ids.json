@@ -4517,6 +4517,17 @@
       "active": true
     },
     {
+      "uid": "f2d3f2d5-2e3d-4ac5-bd85-accb9f1cee8c",
+      "key": "nsfw/站在光里",
+      "blobs": [
+        "5f8adec2338c8c9572e1a204f37899e1e6147564",
+        "79013d7eb34a9badf40604d962184c6e05b5ad54",
+        "def82066d83b631fde496b3fc5d340e8169f431f",
+        "fd96a2fe985bfd824a84bf59b0f293b9ce824df3"
+      ],
+      "active": true
+    },
+    {
       "uid": "7f109bcc-80cd-452a-bc68-0c67d2df5bff",
       "key": "nsfw/雨姐",
       "blobs": [

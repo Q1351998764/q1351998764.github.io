@@ -6229,6 +6229,20 @@ export default {
       "uid": "b0a888e4-f380-4aab-9345-04f6f6c704d3"
     },
     {
+      "id": "nsfw/站在光里",
+      "title": "站在光里",
+      "category": "nsfw",
+      "sensitive": false,
+      "images": [
+        "meme/nsfw/站在光里/01.jpg",
+        "meme/nsfw/站在光里/02.png",
+        "meme/nsfw/站在光里/03.png",
+        "meme/nsfw/站在光里/04.png"
+      ],
+      "uploadedAt": "2026-07-29T10:37:18+08:00",
+      "uid": "f2d3f2d5-2e3d-4ac5-bd85-accb9f1cee8c"
+    },
+    {
       "id": "nsfw/雨姐",
       "title": "雨姐",
       "category": "nsfw",
@@ -6996,6 +7010,10 @@ export default {
     "meme/nsfw/各个大学/21.jpg": "2026-07-27T13:57:02+08:00",
     "meme/nsfw/各个大学/22.jpg": "2026-07-27T13:57:02+08:00",
     "meme/nsfw/各个大学/23.jpg": "2026-07-27T13:57:02+08:00",
+    "meme/nsfw/站在光里/01.jpg": "2026-07-29T10:37:18+08:00",
+    "meme/nsfw/站在光里/02.png": "2026-07-29T10:37:18+08:00",
+    "meme/nsfw/站在光里/03.png": "2026-07-29T10:37:18+08:00",
+    "meme/nsfw/站在光里/04.png": "2026-07-29T10:37:18+08:00",
     "meme/nsfw/雨姐/01.jpg": "2026-07-22T09:36:56+08:00",
     "meme/nsfw/雨姐/02.jpg": "2026-07-22T09:36:56+08:00",
     "meme/nsfw/雨姐/03.jpg": "2026-07-22T09:36:56+08:00",
