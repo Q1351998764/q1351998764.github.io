@@ -3893,6 +3893,21 @@
       "active": true
     },
     {
+      "uid": "c842ec45-624e-4aad-bdf0-06b6352fa989",
+      "key": "default/建筑名",
+      "blobs": [
+        "149e90adc4176c109b749a45861744be9762785e",
+        "33806a04399214ec18006dfa4372011f9045b949",
+        "7105513fd8e6d1bfafe13bdbb83e6427d38975cc",
+        "854ed73f90e203ffd2d8b5b459b7440ed632c9ed",
+        "a3aff63b690a4d8712c27cd5a9d90a0890213a57",
+        "aefc1f18f7cd6902e4c0de10a30f9f2dfab16f04",
+        "b9b5e276e23d633ba580be979cbd6820009a3141",
+        "c8c88cbe0c88ef0437c18f769b7ab24fb5b95edc"
+      ],
+      "active": true
+    },
+    {
       "uid": "96aadd3b-3664-4523-b537-6b8627be50d4",
       "key": "default/异地恋",
       "blobs": [

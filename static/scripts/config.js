@@ -5383,6 +5383,24 @@ export default {
       "uid": "04fde73c-3f82-40e3-96c9-18b64a4519a4"
     },
     {
+      "id": "default/建筑名",
+      "title": "建筑名",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/建筑名/01.jpg",
+        "meme/default/建筑名/02.jpg",
+        "meme/default/建筑名/03.jpg",
+        "meme/default/建筑名/04.jpg",
+        "meme/default/建筑名/05.jpg",
+        "meme/default/建筑名/06.jpg",
+        "meme/default/建筑名/07.jpg",
+        "meme/default/建筑名/08.jpg"
+      ],
+      "uploadedAt": "2026-07-29T11:04:55+08:00",
+      "uid": "c842ec45-624e-4aad-bdf0-06b6352fa989"
+    },
+    {
       "id": "default/异地恋",
       "title": "异地恋",
       "category": "default",
@@ -6983,6 +7001,14 @@ export default {
     "meme/default/为什么中国不提供免费食物/03.png": "2026-07-29T11:04:26+08:00",
     "meme/default/亚空间/01.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/亚空间/02.jpg": "2026-07-19T10:01:27+08:00",
+    "meme/default/建筑名/01.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/02.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/03.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/04.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/05.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/06.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/07.jpg": "2026-07-29T11:04:55+08:00",
+    "meme/default/建筑名/08.jpg": "2026-07-29T11:04:55+08:00",
     "meme/default/异地恋/01.jpg": "2026-07-27T13:49:30+08:00",
     "meme/default/异地恋/02.jpg": "2026-07-27T13:49:30+08:00",
     "meme/default/散光/01.png": "2026-07-19T10:15:07+08:00",
