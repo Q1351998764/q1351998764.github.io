@@ -5358,6 +5358,19 @@ export default {
       "uid": "df266f71-ad28-4a53-acf1-50dafc4ae61b"
     },
     {
+      "id": "default/为什么中国不提供免费食物",
+      "title": "为什么中国不提供免费食物",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/为什么中国不提供免费食物/01.png",
+        "meme/default/为什么中国不提供免费食物/02.png",
+        "meme/default/为什么中国不提供免费食物/03.png"
+      ],
+      "uploadedAt": "2026-07-29T11:04:26+08:00",
+      "uid": "0be25b6c-49b8-4c64-a021-7b4d18398b28"
+    },
+    {
       "id": "default/亚空间",
       "title": "亚空间",
       "category": "default",
@@ -6965,6 +6978,9 @@ export default {
     "meme/20260727-060102-02-729d4383dd6f1769972eab0172bbab99.jpeg": "2026-07-27T14:01:04+08:00",
     "meme/20260727-060102-03-3109d2d39b06403eff24c065bfe8bff2.jpeg": "2026-07-27T14:01:04+08:00",
     "meme/20260727-060102-04-b586d500b75d9436307e1bb08eac8e5e.jpeg": "2026-07-27T14:01:04+08:00",
+    "meme/default/为什么中国不提供免费食物/01.png": "2026-07-29T11:04:26+08:00",
+    "meme/default/为什么中国不提供免费食物/02.png": "2026-07-29T11:04:26+08:00",
+    "meme/default/为什么中国不提供免费食物/03.png": "2026-07-29T11:04:26+08:00",
     "meme/default/亚空间/01.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/亚空间/02.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/异地恋/01.jpg": "2026-07-27T13:49:30+08:00",
