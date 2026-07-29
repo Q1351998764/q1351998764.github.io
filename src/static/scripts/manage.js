@@ -4,6 +4,12 @@ const supportedExtensions = new Set(['jpg', 'jpeg', 'png', 'jfif', 'webp', 'gif'
 const maxFileSize = 20 * 1024 * 1024
 const maxTotalSize = 80 * 1024 * 1024
 const maxFiles = 50
+const generatedMetadataPaths = new Set([
+    'static/data/meme-entry-ids.json',
+    'static/scripts/config.js',
+    'static/scripts/text-config.js',
+])
+const branchUpdateRetryLimit = 4
 
 const authPanel = document.getElementById('auth-panel')
 const authForm = document.getElementById('auth-form')
@@ -146,6 +152,7 @@ async function githubApi(path, options = {}) {
             'X-GitHub-Api-Version': '2022-11-28',
         },
         body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        cache: 'no-store',
     })
 
     if (response.status === 404 && options.allow404) return null
@@ -195,6 +202,10 @@ async function fileToBase64(file) {
 
 function cloneDocument(value) {
     return JSON.parse(JSON.stringify(value))
+}
+
+function wait(milliseconds) {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 
 function setAuthStatus(message, isError = false) {
@@ -1488,30 +1499,63 @@ function buildTextGroupOrderChanges(entry) {
     return finalTreeChanges(entry.documents, assignments, textDocuments)
 }
 
+async function metadataCompatibleHead(baseSha) {
+    const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
+    const latestSha = ref.object.sha
+    if (!baseSha || latestSha === baseSha) return latestSha
+
+    const comparison = await githubApi(
+        `/compare/${encodeURIComponent(baseSha)}...${encodeURIComponent(latestSha)}`
+    )
+    const changedPaths = (comparison.files || []).map((file) => file.filename)
+    const metadataOnly = comparison.status === 'ahead'
+        && changedPaths.length > 0
+        && changedPaths.every((path) => generatedMetadataPaths.has(path))
+    if (!metadataOnly) {
+        throw new ApiError('仓库内容已发生变化，请刷新后重试', 409)
+    }
+    return latestSha
+}
+
+async function createTreeCommit(treeEntries, commitMessage, initialBaseSha, onRetry = () => {}) {
+    let baseSha = initialBaseSha
+    for (let attempt = 0; attempt < branchUpdateRetryLimit; attempt += 1) {
+        const compatibleSha = await metadataCompatibleHead(baseSha)
+        if (baseSha && compatibleSha !== baseSha) onRetry(attempt + 1)
+        baseSha = compatibleSha
+
+        const baseCommit = await githubApi(`/git/commits/${baseSha}`)
+        const tree = await githubApi('/git/trees', {
+            method: 'POST',
+            body: { base_tree: baseCommit.tree.sha, tree: treeEntries },
+        })
+        const commit = await githubApi('/git/commits', {
+            method: 'POST',
+            body: { message: commitMessage, tree: tree.sha, parents: [baseSha] },
+        })
+        try {
+            await githubApi(`/git/refs/heads/${encodeURIComponent(branch)}`, {
+                method: 'PATCH',
+                body: { sha: commit.sha, force: false },
+            })
+            return commit.sha
+        } catch (error) {
+            if (![409, 422].includes(error.status) || attempt + 1 >= branchUpdateRetryLimit) {
+                throw error
+            }
+            await wait(400 * (attempt + 1))
+            const latestSha = await metadataCompatibleHead(baseSha)
+            if (latestSha === baseSha) throw error
+            baseSha = latestSha
+            onRetry(attempt + 1)
+        }
+    }
+    throw new ApiError('后台配置更新频繁，请稍后重试', 409)
+}
+
 async function createContentTreeCommit(changes, commitMessage) {
     if (changes.length === 0) throw new Error('内容已经位于目标位置')
-    const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
-    if (ref.object.sha !== libraryHeadSha) {
-        throw new ApiError('仓库已有新提交，请刷新列表后重试', 409)
-    }
-    const baseCommit = await githubApi(`/git/commits/${libraryHeadSha}`)
-    const tree = await githubApi('/git/trees', {
-        method: 'POST',
-        body: { base_tree: baseCommit.tree.sha, tree: changes },
-    })
-    const commit = await githubApi('/git/commits', {
-        method: 'POST',
-        body: {
-            message: commitMessage,
-            tree: tree.sha,
-            parents: [libraryHeadSha],
-        },
-    })
-    await githubApi(`/git/refs/heads/${encodeURIComponent(branch)}`, {
-        method: 'PATCH',
-        body: { sha: commit.sha, force: false },
-    })
-    return commit.sha
+    return createTreeCommit(changes, commitMessage, libraryHeadSha)
 }
 
 async function refreshRepositoryState(options = {}) {
@@ -1651,7 +1695,6 @@ async function createBatchCommit(category, paths, commitMessage) {
     setProgress(5)
     const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
     const baseCommitSha = ref.object.sha
-    const baseCommit = await githubApi(`/git/commits/${baseCommitSha}`)
     setProgress(10)
 
     let uploaded = 0
@@ -1686,25 +1729,14 @@ async function createBatchCommit(category, paths, commitMessage) {
     }
 
     setProgress(75)
-    const tree = await githubApi('/git/trees', {
-        method: 'POST',
-        body: { base_tree: baseCommit.tree.sha, tree: fileTreeEntries },
-    })
-    const commit = await githubApi('/git/commits', {
-        method: 'POST',
-        body: {
-            message: commitMessage,
-            tree: tree.sha,
-            parents: [baseCommitSha],
-        },
-    })
-    setProgress(90)
-    await githubApi(`/git/refs/heads/${encodeURIComponent(branch)}`, {
-        method: 'PATCH',
-        body: { sha: commit.sha, force: false },
-    })
+    const commitSha = await createTreeCommit(
+        fileTreeEntries,
+        commitMessage,
+        baseCommitSha,
+        () => setStatus('检测到后台配置更新，正在自动继续上传...')
+    )
     setProgress(100)
-    return commit.sha
+    return commitSha
 }
 
 function clearSelectedFiles() {
@@ -1778,11 +1810,7 @@ function buildTextUploadPath(categoryId, title) {
 
 async function createTextUploadCommit(category, path, markdown, commitMessage) {
     const ref = await githubApi(`/git/ref/heads/${encodeURIComponent(branch)}`)
-    if (libraryHeadSha && ref.object.sha !== libraryHeadSha) {
-        throw new ApiError('仓库已有新提交，请刷新后重试', 409)
-    }
     const baseCommitSha = ref.object.sha
-    const baseCommit = await githubApi(`/git/commits/${baseCommitSha}`)
     const blob = await githubApi('/git/blobs', {
         method: 'POST',
         body: { content: encodeBase64Utf8(markdown), encoding: 'base64' },
@@ -1803,19 +1831,13 @@ async function createTextUploadCommit(category, path, markdown, commitMessage) {
         })
     }
 
-    const tree = await githubApi('/git/trees', {
-        method: 'POST',
-        body: { base_tree: baseCommit.tree.sha, tree: treeEntries },
-    })
-    const commit = await githubApi('/git/commits', {
-        method: 'POST',
-        body: { message: commitMessage, tree: tree.sha, parents: [baseCommitSha] },
-    })
-    await githubApi(`/git/refs/heads/${encodeURIComponent(branch)}`, {
-        method: 'PATCH',
-        body: { sha: commit.sha, force: false },
-    })
-    return { commitSha: commit.sha, blobSha: blob.sha }
+    const commitSha = await createTreeCommit(
+        treeEntries,
+        commitMessage,
+        baseCommitSha,
+        () => setTextUploadStatus('检测到后台配置更新，正在自动继续上传...')
+    )
+    return { commitSha, blobSha: blob.sha }
 }
 
 authForm.addEventListener('submit', async (event) => {
@@ -2052,10 +2074,7 @@ uploadForm.addEventListener('submit', async (event) => {
             showCommitRefreshError(statusMessage, commitSha)
         }
     } catch (error) {
-        const message = error.status === 409 || error.status === 422
-            ? '分支在上传期间发生变化，请重新上传'
-            : error.message
-        setStatus(message, 'error')
+        setStatus(error.message, 'error')
     } finally {
         setTimeout(() => setProgress(0, false), 1200)
         updateUploadButton()

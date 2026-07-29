@@ -120,6 +120,8 @@ Memebox 可以存放多种内容，如`图片`和`Markdown文档`。
 
 移动、成组和排序操作会复用仓库中原文件的 Git blob，不会重新上传或改写内容。
 提交前管理页会检查分支是否已经变化，避免覆盖其他刚完成的提交。
+如果变化仅来自 GitHub Actions 生成的配置文件，管理页会自动基于最新提交重试，连续上传
+图片或文字时不需要等待后台任务结束；真实内容发生变化时仍会停止提交并要求刷新。
 
 管理页使用 GitHub 细粒度 Personal Access Token。Token 应只授权当前仓库，
 并仅开启 `Contents: read and write`。勾选“当前标签页内记住 Token”后，Token 会保存在
