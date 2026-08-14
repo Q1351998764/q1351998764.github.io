@@ -6625,6 +6625,25 @@
       "active": true
     },
     {
+      "uid": "b27f9802-0946-465f-9564-222e827bc8eb",
+      "key": "nsfw/白嫖技师",
+      "blobs": [
+        "398e14a13d250636f3673051010b1600fc3f714c",
+        "3e528b08a94f892f4ad819fea7fce9eae623c267",
+        "89725cadd6f549cb15eb62c4271db840c7e8f19f",
+        "933c22393dbfcfad6303242d986695a911b9ddca",
+        "a2ca0b8378b8f80ba073e48219ea72137082af33",
+        "b74d375fd480a6853b1522ef5fb732390265f5a9",
+        "c2d3e6da1677f03d1290ce697586fff188007557",
+        "c79931192bda919ccbfdca067916fb1984cf8a31",
+        "d4dd89da81ba41d5ea39d552560652fa5b285a64",
+        "e3e64001eb38ac5827536f63132d46c99e4adecd",
+        "fdce46c0589ff0c61ba5cdb1131d1adb1371667e",
+        "ff58219f959a17a8218480fe255ac141860a802c"
+      ],
+      "active": true
+    },
+    {
       "uid": "f2d3f2d5-2e3d-4ac5-bd85-accb9f1cee8c",
       "key": "nsfw/站在光里",
       "blobs": [
@@ -7153,25 +7172,6 @@
         "9750b0e80aba00d5149c10771778764638e9635a"
       ],
       "active": true
-    },
-    {
-      "uid": "b27f9802-0946-465f-9564-222e827bc8eb",
-      "key": "nsfw/白嫖技师",
-      "blobs": [
-        "398e14a13d250636f3673051010b1600fc3f714c",
-        "3e528b08a94f892f4ad819fea7fce9eae623c267",
-        "89725cadd6f549cb15eb62c4271db840c7e8f19f",
-        "933c22393dbfcfad6303242d986695a911b9ddca",
-        "a2ca0b8378b8f80ba073e48219ea72137082af33",
-        "b74d375fd480a6853b1522ef5fb732390265f5a9",
-        "c2d3e6da1677f03d1290ce697586fff188007557",
-        "c79931192bda919ccbfdca067916fb1984cf8a31",
-        "d4dd89da81ba41d5ea39d552560652fa5b285a64",
-        "e3e64001eb38ac5827536f63132d46c99e4adecd",
-        "fdce46c0589ff0c61ba5cdb1131d1adb1371667e",
-        "ff58219f959a17a8218480fe255ac141860a802c"
-      ],
-      "active": false
     }
   ]
 }
