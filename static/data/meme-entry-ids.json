@@ -6607,6 +6607,24 @@
       "active": true
     },
     {
+      "uid": "c6f3434f-9316-40e9-b88b-c8a86af9365a",
+      "key": "nsfw/大帝发表重要演讲",
+      "blobs": [
+        "0bb633bb613c89b55a920f8690d74c8243bd415c",
+        "0c29657b00d2730111fbb3290470c1d08b79aa6a",
+        "21ff0e090e85bc58a0f851b87b078dc605564ca6",
+        "5294ab1c6426936fdb365c6357ff9769e89041d9",
+        "56548a9779591b0aa1f578eadf5a6800f42b2673",
+        "66afc56902b20d55586fa1b8c50afdd8e0b7a5dd",
+        "7363632bc667fcd57888377451970b63be474fb8",
+        "7ea623b9e79299112af870e23d6b2b8f3fb73f7a",
+        "87499dba1964393fce9a4ea55d475c64d835d3c9",
+        "a6039e5bfddd7ed160a3a69bae1fa2aa1de3f9f1",
+        "b7243b56773df24cb63dae81870edfa46a9eb0d0"
+      ],
+      "active": true
+    },
+    {
       "uid": "b27f9802-0946-465f-9564-222e827bc8eb",
       "key": "nsfw/白嫖技师",
       "blobs": [
