@@ -11,6 +11,10 @@ on:
       - 'shell/catalog_git.py'
       - '.github/workflows/generate-config-file.yml'
 
+concurrency:
+  group: generated-catalogs-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   generate-config-file:
     name: Generate config file
@@ -25,13 +29,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Build config
+      - name: Build and publish config
+        shell: bash
         run: |
-          ./shell/computed.sh
-          cat static/scripts/config.js
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'chore: update config file'
-          file_pattern: static/scripts/config.js static/data/meme-entry-ids.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in {1..5}; do
+            git fetch origin main
+            git reset --hard origin/main
+            ./shell/computed.sh
+            git add static/scripts/config.js static/data/meme-entry-ids.json
+
+            if git diff --cached --quiet; then
+              echo "Config is already up to date."
+              exit 0
+            fi
+
+            git commit -m 'chore: update config file'
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+
+            echo "Main changed while publishing; retrying ($attempt/5)..."
+            sleep $((attempt * 3))
+          done
+
+          echo "Unable to publish config after 5 attempts."
+          exit 1
