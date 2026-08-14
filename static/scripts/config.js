@@ -8820,6 +8820,18 @@ export default {
       ],
       "uploadedAt": "2026-08-14T15:54:28+08:00",
       "uid": "f8e2c022-c188-4515-8e04-5ce6032d1fa1"
+    },
+    {
+      "id": "weiren/大鼠领养",
+      "title": "大鼠领养",
+      "category": "weiren",
+      "sensitive": false,
+      "images": [
+        "meme/weiren/大鼠领养/01.jpg",
+        "meme/weiren/大鼠领养/02.jpg"
+      ],
+      "uploadedAt": "2026-08-14T15:58:23+08:00",
+      "uid": "4b63b308-58e7-471c-9d9b-d097373d93a5"
     }
   ],
   "uploads": {
@@ -9668,6 +9680,8 @@ export default {
     "meme/weiren/20260814-075410-45-72fa6544aa874f081f7a918e27bc1db6.jpg": "2026-08-14T15:54:28+08:00",
     "meme/weiren/20260814-075410-46-73c78636869ebfc1a9a9aa6fc7065c5b.jpg": "2026-08-14T15:54:28+08:00",
     "meme/weiren/20260814-075410-47-74ba7cb0294f63fdfa75eacf452c8236.jpg": "2026-08-14T15:54:28+08:00",
-    "meme/weiren/20260814-075410-48-78b904632cbe1e2a69c989e221f14b02.jpg": "2026-08-14T15:54:28+08:00"
+    "meme/weiren/20260814-075410-48-78b904632cbe1e2a69c989e221f14b02.jpg": "2026-08-14T15:54:28+08:00",
+    "meme/weiren/大鼠领养/01.jpg": "2026-08-14T15:58:23+08:00",
+    "meme/weiren/大鼠领养/02.jpg": "2026-08-14T15:58:23+08:00"
   }
 }
