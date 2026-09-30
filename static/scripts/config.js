@@ -32,6 +32,12 @@ export default {
       "sensitive": false
     },
     {
+      "id": "chaogu",
+      "label": "炒股",
+      "order": 100,
+      "sensitive": false
+    },
+    {
       "id": "aiyuxiwang",
       "label": "爱与希望",
       "order": 100,
@@ -7774,6 +7780,94 @@ export default {
       "uid": "a98dbf81-7141-4824-8df7-3c0df2e00d54"
     },
     {
+      "id": "chaogu/20260930-151525-01-5a1d39b8a4b5399b9cee0c90dc96a551",
+      "title": "20260930-151525-01-5a1d39b8a4b5399b9cee0c90dc96a551",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-01-5a1d39b8a4b5399b9cee0c90dc96a551.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "0365bfeb-5d0d-44ff-896b-3588eef5a5cd"
+    },
+    {
+      "id": "chaogu/20260930-151525-02-6bd91929cc7f25afc283bfeb2ab3a0ab",
+      "title": "20260930-151525-02-6bd91929cc7f25afc283bfeb2ab3a0ab",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-02-6bd91929cc7f25afc283bfeb2ab3a0ab.jpg"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "8fdc89a9-e82f-4ea3-945b-ce9bf12b9254"
+    },
+    {
+      "id": "chaogu/20260930-151525-03-9b84b59353cd1e36cf5415d23f366df6",
+      "title": "20260930-151525-03-9b84b59353cd1e36cf5415d23f366df6",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-03-9b84b59353cd1e36cf5415d23f366df6.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "2593ff2f-0902-409a-9bad-f24c50fcd22c"
+    },
+    {
+      "id": "chaogu/20260930-151525-04-274048f8c69f8fd3e2a6b9c3fd657e73",
+      "title": "20260930-151525-04-274048f8c69f8fd3e2a6b9c3fd657e73",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-04-274048f8c69f8fd3e2a6b9c3fd657e73.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "eafd538f-6a3c-4e5b-a5e0-59156e1317b3"
+    },
+    {
+      "id": "chaogu/20260930-151525-05-a6d36c7e425854d36e219415747119a7",
+      "title": "20260930-151525-05-a6d36c7e425854d36e219415747119a7",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-05-a6d36c7e425854d36e219415747119a7.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "88312f6d-796d-4814-9001-e0185fd7ec32"
+    },
+    {
+      "id": "chaogu/20260930-151525-06-a50e5d96d2c6a9263f989a3464d38b70",
+      "title": "20260930-151525-06-a50e5d96d2c6a9263f989a3464d38b70",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-06-a50e5d96d2c6a9263f989a3464d38b70.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "d3723eee-c7a6-4cd3-a862-236ff446dfc9"
+    },
+    {
+      "id": "chaogu/20260930-151525-07-c5a7d3f028ba22563dcf842510611d03",
+      "title": "20260930-151525-07-c5a7d3f028ba22563dcf842510611d03",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-07-c5a7d3f028ba22563dcf842510611d03.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "60e200be-2748-4eb0-a7b0-a8636cd89021"
+    },
+    {
+      "id": "chaogu/20260930-151525-08-e31016c6dc9cab73812bc34626b0b644",
+      "title": "20260930-151525-08-e31016c6dc9cab73812bc34626b0b644",
+      "category": "chaogu",
+      "sensitive": false,
+      "images": [
+        "meme/chaogu/20260930-151525-08-e31016c6dc9cab73812bc34626b0b644.png"
+      ],
+      "uploadedAt": "2026-09-30T23:15:46+08:00",
+      "uid": "18153f09-f9ef-4455-8ff1-5cd5fa9e0c04"
+    },
+    {
       "id": "dyxh/20260722-012825-01-2c0cd766ac4e04fd1c41f84684c21132",
       "title": "20260722-012825-01-2c0cd766ac4e04fd1c41f84684c21132",
       "category": "dyxh",
@@ -10706,6 +10800,14 @@ export default {
     "meme/aiyuxiwang/原来世界上的坏事情只是看法不同/16.jpg": "2026-08-14T16:01:23+08:00",
     "meme/aiyuxiwang/原来世界上的坏事情只是看法不同/17.jpg": "2026-08-14T16:01:23+08:00",
     "meme/aiyuxiwang/原来世界上的坏事情只是看法不同/18.jpg": "2026-08-14T16:01:23+08:00",
+    "meme/chaogu/20260930-151525-01-5a1d39b8a4b5399b9cee0c90dc96a551.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-02-6bd91929cc7f25afc283bfeb2ab3a0ab.jpg": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-03-9b84b59353cd1e36cf5415d23f366df6.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-04-274048f8c69f8fd3e2a6b9c3fd657e73.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-05-a6d36c7e425854d36e219415747119a7.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-06-a50e5d96d2c6a9263f989a3464d38b70.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-07-c5a7d3f028ba22563dcf842510611d03.png": "2026-09-30T23:15:46+08:00",
+    "meme/chaogu/20260930-151525-08-e31016c6dc9cab73812bc34626b0b644.png": "2026-09-30T23:15:46+08:00",
     "meme/default/12345/01.jpg": "2026-08-14T16:02:26+08:00",
     "meme/default/12345/02.jpg": "2026-08-14T16:02:26+08:00",
     "meme/default/12345/03.jpg": "2026-08-14T16:02:26+08:00",
