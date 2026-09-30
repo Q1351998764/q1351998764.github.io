@@ -8,6 +8,12 @@ export default {
       "sensitive": false
     },
     {
+      "id": "ai",
+      "label": "ai",
+      "order": 100,
+      "sensitive": false
+    },
+    {
       "id": "nsfw",
       "label": "NSFW",
       "order": 100,
@@ -7084,6 +7090,50 @@ export default {
       "uid": "ae53e356-9fbd-436a-bb5e-a795c333dac7"
     },
     {
+      "id": "ai/20260930-152254-01-2a0e4e3e4d739ca9145826e74cb368fe",
+      "title": "20260930-152254-01-2a0e4e3e4d739ca9145826e74cb368fe",
+      "category": "ai",
+      "sensitive": false,
+      "images": [
+        "meme/ai/20260930-152254-01-2a0e4e3e4d739ca9145826e74cb368fe.jpg"
+      ],
+      "uploadedAt": "2026-09-30T23:23:02+08:00",
+      "uid": "2a4d5e18-b5bc-4fdc-8af8-b3e20403f2aa"
+    },
+    {
+      "id": "ai/20260930-152254-02-19fdfd75aee525e1d83f10eda34bb127",
+      "title": "20260930-152254-02-19fdfd75aee525e1d83f10eda34bb127",
+      "category": "ai",
+      "sensitive": false,
+      "images": [
+        "meme/ai/20260930-152254-02-19fdfd75aee525e1d83f10eda34bb127.jpg"
+      ],
+      "uploadedAt": "2026-09-30T23:23:02+08:00",
+      "uid": "193380f6-1e87-4b25-b610-eeadf913f082"
+    },
+    {
+      "id": "ai/20260930-152254-03-c0fe35f28188e9592ab30fa6f74ea225",
+      "title": "20260930-152254-03-c0fe35f28188e9592ab30fa6f74ea225",
+      "category": "ai",
+      "sensitive": false,
+      "images": [
+        "meme/ai/20260930-152254-03-c0fe35f28188e9592ab30fa6f74ea225.jpg"
+      ],
+      "uploadedAt": "2026-09-30T23:23:02+08:00",
+      "uid": "89a27172-26e7-4331-91ee-d4e67ab32660"
+    },
+    {
+      "id": "ai/20260930-152254-04-e4a95f223230719dc237086d2f2d6d41",
+      "title": "20260930-152254-04-e4a95f223230719dc237086d2f2d6d41",
+      "category": "ai",
+      "sensitive": false,
+      "images": [
+        "meme/ai/20260930-152254-04-e4a95f223230719dc237086d2f2d6d41.jpg"
+      ],
+      "uploadedAt": "2026-09-30T23:23:02+08:00",
+      "uid": "1e541869-3cbf-4cac-9ab7-f0cc467e879f"
+    },
+    {
       "id": "airen/20260814-075506-01-2a483162c1665ca9ff18b4752000dde4",
       "title": "20260814-075506-01-2a483162c1665ca9ff18b4752000dde4",
       "category": "airen",
@@ -10756,6 +10806,10 @@ export default {
     "meme/20260814-080313-26-f2f59a09e8071378040843cbce9b7eed.jpg": "2026-08-14T16:03:27+08:00",
     "meme/20260814-080313-27-f4645b79cc340377e52f1863b99da627.jpg": "2026-08-14T16:03:27+08:00",
     "meme/20260814-080313-28-fbe0d262302685d2317c76c3ca26bc3b.jpg": "2026-08-14T16:03:27+08:00",
+    "meme/ai/20260930-152254-01-2a0e4e3e4d739ca9145826e74cb368fe.jpg": "2026-09-30T23:23:02+08:00",
+    "meme/ai/20260930-152254-02-19fdfd75aee525e1d83f10eda34bb127.jpg": "2026-09-30T23:23:02+08:00",
+    "meme/ai/20260930-152254-03-c0fe35f28188e9592ab30fa6f74ea225.jpg": "2026-09-30T23:23:02+08:00",
+    "meme/ai/20260930-152254-04-e4a95f223230719dc237086d2f2d6d41.jpg": "2026-09-30T23:23:02+08:00",
     "meme/airen/20260814-075506-01-2a483162c1665ca9ff18b4752000dde4.jpg": "2026-08-14T15:55:17+08:00",
     "meme/airen/20260814-075506-02-2f07e3b541d94fcc28fa9b583619dc94.jpg": "2026-08-14T15:55:17+08:00",
     "meme/airen/20260814-075506-03-9bd55560fadbbbd967994c5051ca21aa.jpg": "2026-08-14T15:55:17+08:00",
