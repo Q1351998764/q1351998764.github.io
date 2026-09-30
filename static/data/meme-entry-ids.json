@@ -5637,6 +5637,17 @@
       "active": true
     },
     {
+      "uid": "0bb78d8f-7bb8-41c8-b79b-dd1e0293c118",
+      "key": "default/天机阁",
+      "blobs": [
+        "20ecaa9f443bfe3c7d5862294c87b04e31e2b49f",
+        "8ff9b9f674653dc9fb26b0605ebdceff31f0ada6",
+        "99d7c163e472b8fb87a2f4a8c29106aaf147fe71",
+        "9a249ed4f532056185991cb52dd29d95a7fdc584"
+      ],
+      "active": true
+    },
+    {
       "uid": "c842ec45-624e-4aad-bdf0-06b6352fa989",
       "key": "default/建筑名",
       "blobs": [

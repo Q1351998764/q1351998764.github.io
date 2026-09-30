@@ -6998,6 +6998,20 @@ export default {
       "uid": "04fde73c-3f82-40e3-96c9-18b64a4519a4"
     },
     {
+      "id": "default/天机阁",
+      "title": "天机阁",
+      "category": "default",
+      "sensitive": false,
+      "images": [
+        "meme/default/天机阁/01.jpg",
+        "meme/default/天机阁/02.jpg",
+        "meme/default/天机阁/03.jpeg",
+        "meme/default/天机阁/04.png"
+      ],
+      "uploadedAt": "2026-09-30T23:17:25+08:00",
+      "uid": "0bb78d8f-7bb8-41c8-b79b-dd1e0293c118"
+    },
+    {
       "id": "default/建筑名",
       "title": "建筑名",
       "category": "default",
@@ -10821,6 +10835,10 @@ export default {
     "meme/default/为什么中国不提供免费食物/03.png": "2026-07-29T11:04:26+08:00",
     "meme/default/亚空间/01.jpg": "2026-07-19T10:01:27+08:00",
     "meme/default/亚空间/02.jpg": "2026-07-19T10:01:27+08:00",
+    "meme/default/天机阁/01.jpg": "2026-09-30T23:17:25+08:00",
+    "meme/default/天机阁/02.jpg": "2026-09-30T23:17:25+08:00",
+    "meme/default/天机阁/03.jpeg": "2026-09-30T23:17:25+08:00",
+    "meme/default/天机阁/04.png": "2026-09-30T23:17:25+08:00",
     "meme/default/建筑名/01.jpg": "2026-07-29T11:04:55+08:00",
     "meme/default/建筑名/02.jpg": "2026-07-29T11:04:55+08:00",
     "meme/default/建筑名/03.jpg": "2026-07-29T11:04:55+08:00",
